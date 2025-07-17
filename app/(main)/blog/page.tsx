@@ -1,22 +1,29 @@
-// app/(main)/blog/page.tsx
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image'; // Impor Image
 
-// Komponen Card untuk menampilkan satu artikel blog
 function BlogCard({ post }: { post: any }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300"
+      className="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 overflow-hidden"
     >
-      <h3 className="text-2xl font-bold mb-2 text-gray-800">{post.title}</h3>
-      <p className="text-gray-600 mb-4">
-        {/* Tampilkan cuplikan konten jika ada, jika tidak, tampilkan placeholder */}
-        {post.content
-          ? `${post.content.substring(0, 150)}...`
-          : 'Klik untuk membaca lebih lanjut.'}
-      </p>
-      <span className="font-semibold text-indigo-600">Baca Selengkapnya →</span>
+      {post.image_url && (
+        <Image 
+          src={post.image_url} 
+          alt={post.title}
+          width={400}
+          height={200}
+          className="w-full h-48 object-cover"
+        />
+      )}
+      <div className="p-6">
+        <h3 className="text-2xl font-bold mb-2 text-gray-800">{post.title}</h3>
+        <p className="text-gray-600 mb-4">
+          {post.content ? `${post.content.substring(0, 100)}...` : 'Klik untuk membaca lebih lanjut.'}
+        </p>
+        <span className="font-semibold text-indigo-600">Baca Selengkapnya →</span>
+      </div>
     </Link>
   );
 }

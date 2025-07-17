@@ -9,8 +9,10 @@ async function getPostById(id: string) {
   return data;
 }
 
-export default async function EditPostPage({ params }: { params: { id: string } }) {
-  const post = await getPostById(params.id);
+export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params sebelum menggunakannya
+  const { id } = await params;
+  const post = await getPostById(id);
 
   return (
     <div className="mx-auto max-w-4xl py-8 px-4">

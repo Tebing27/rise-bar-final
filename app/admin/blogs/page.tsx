@@ -1,6 +1,7 @@
 // app/admin/blogs/page.tsx
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
+import { DeletePostButton } from '@/components/admin/DeletePostButton';
 
 // Fungsi ini mengambil SEMUA post, bukan hanya yang published
 async function getAllPosts() {
@@ -56,6 +57,7 @@ export default async function AdminBlogsPage() {
                     Edit
                   </Link>
                   {/* Tombol Hapus akan kita buat selanjutnya */}
+                  <DeletePostButton postId={post.id} />
                 </td>
               </tr>
             ))}

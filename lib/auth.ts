@@ -15,39 +15,62 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
+        console.log("\n--- PROSES OTORISASI DIMULAI ---");
 
-        const { data: user, error } = await db
-          .from("users")
-          // Ambil nama role, bukan hanya id-nya
-          .select("*, role:roles(name)") 
-          .eq("email", credentials.email as string)
-          .single();
-
-        if (error || !user) return null;
-
-        // Cek apakah password cocok
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password_hash || ""
-        );
-
-        if (passwordsMatch) {
-          // Kirim data user yang relevan ke callback jwt
-          return { 
-              id: user.id, 
-              email: user.email, 
-              name: user.name, 
-              image: user.image,
-              // @ts-ignore
-              role: user.role.name // Kirim nama role
-            };
+        if (!credentials?.email || !credentials.password) {
+          console.log("[GAGAL] Email atau password tidak dikirim.");
+          return null;
         }
 
-        return null;
+        console.log(`[INFO] Mencoba login dengan email: ${credentials.email}`);
+
+        try {
+          // Gunakan client admin untuk membaca tabel user
+          const { data: user, error: userError } = await db
+            .from('users')
+            .select('*, role:roles(name)')
+            .eq('email', credentials.email as string)
+            .single();
+
+          if (userError) {
+            console.error('[ERROR DB] Gagal mengambil data user:', userError.message);
+            return null;
+          }
+
+          if (!user) {
+            console.log('[GAGAL] Pengguna dengan email tersebut tidak ditemukan di database.');
+            return null;
+          }
+
+          console.log('[OK] Pengguna ditemukan:', { id: user.id, email: user.email });
+
+          if (!user.password_hash) {
+            console.log('[GAGAL] Pengguna ini tidak memiliki hash password di database.');
+            return null;
+          }
+
+          console.log('[INFO] Membandingkan password...');
+          const passwordsMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.password_hash
+          );
+
+          if (passwordsMatch) {
+            console.log('✅ [BERHASIL] Password cocok! Login seharusnya berhasil.');
+            // @ts-ignore
+            return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role.name };
+          } else {
+            console.log('[GAGAL] Password tidak cocok.');
+            return null;
+          }
+
+        } catch (e) {
+          console.error("--- KESALAHAN KRITIS DI FUNGSI AUTHORIZE ---", e);
+          return null;
+        }
       },
     }),
-  ],
+],
   callbacks: {
     // Callback ini digunakan untuk memasukkan 'role' ke dalam token JWT
     async jwt({ token, user }) {
