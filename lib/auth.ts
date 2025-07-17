@@ -2,7 +2,8 @@
 import NextAuth from "next-auth";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import Credentials from "next-auth/providers/credentials";
-import { db } from "@/lib/supabase"; 
+// Pastikan baris ini mengimpor supabaseAdmin, BUKAN db dari lib/supabase
+import { supabaseAdmin as db } from '@/lib/supabase-admin'; 
 import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
