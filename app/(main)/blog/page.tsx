@@ -18,7 +18,21 @@ function BlogCard({ post }: { post: any }) {
         />
       )}
       <div className="p-6">
+        <div className="flex items-center text-sm text-gray-500 mb-2">
+            {/* Ganti post.author?.name menjadi post.author_name */}
+            <span>Oleh: {post.author_name || 'Anonim'}</span>
+            <span className="mx-2">•</span>
+            <span>{new Date(post.published_at).toLocaleDateString()}</span>
+        </div>
         <h3 className="text-2xl font-bold mb-2 text-gray-800">{post.title}</h3>
+        {/* Tampilkan Tags di sini */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {post.tags?.map((tag: any) => (
+            <span key={tag.name} className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {tag.name}
+            </span>
+          ))}
+        </div>
         <p className="text-gray-600 mb-4">
           {post.content ? `${post.content.substring(0, 100)}...` : 'Klik untuk membaca lebih lanjut.'}
         </p>
@@ -32,7 +46,12 @@ function BlogCard({ post }: { post: any }) {
 async function getPublishedPosts() {
   const { data, error } = await db
     .from('posts')
-    .select('*')
+    // Ambil juga nama penulis dan nama tag
+    .select(`
+      *,
+      author:users ( name ),
+      tags ( name )
+    `)
     .eq('is_published', true)
     .order('published_at', { ascending: false });
 

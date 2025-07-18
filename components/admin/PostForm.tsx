@@ -10,12 +10,12 @@ import Image from 'next/image';
 import { CldUploadWidget } from 'next-cloudinary';
 
 // Terima `post` sebagai prop, bisa null jika ini form baru
-export function PostForm({ post, tags }: { post?: any | null, tags?: string }) {
+export function PostForm({ post, tags, authors }: { post?: any | null; tags?: string, authors?: any[] }) {
   const initialState: FormState = { success: false };
   const [state, formAction] = useActionState(upsertPost, initialState);
+  const [imageUrl, setImageUrl] = useState(post?.image_url || '');
 
     // State untuk menyimpan URL gambar dan status loading
-    const [imageUrl, setImageUrl] = useState(post?.image_url || '');
     const [isUploading, setIsUploading] = useState(false);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +67,19 @@ export function PostForm({ post, tags }: { post?: any | null, tags?: string }) {
         <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug (URL)</label>
         <input type="text" name="slug" id="slug" defaultValue={post?.slug} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
          {state.errors?.slug && <p className="text-red-500 text-xs mt-1">{state.errors.slug[0]}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="author_name" className="block text-sm font-medium text-gray-700">Nama Penulis</label>
+        <input 
+          type="text" 
+          name="author_name" 
+          id="author_name" 
+          defaultValue={post?.author_name} 
+          required 
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+        />
+         {state.errors?.author_name && <p className="text-red-500 text-xs mt-1">{state.errors.author_name[0]}</p>}
       </div>
       {/* Input Gambar Menggunakan Widget */}
       <div>

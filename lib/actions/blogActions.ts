@@ -15,6 +15,8 @@ cloudinary.config({
 const PostSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(5, { message: 'Judul minimal 5 karakter.' }),
+  // Tambahkan author_name ke skema
+  author_name: z.string().min(3, { message: 'Nama penulis minimal 3 karakter.' }),
   slug: z.string().min(5, { message: 'Slug minimal 5 karakter.' }),
   content: z.string().optional(),
   image_url: z.string().optional(),
@@ -51,9 +53,11 @@ export async function upsertPost(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+
   const rawData = {
     id: formData.get('id') || undefined,
     title: formData.get('title'),
+    author_name: formData.get('author_name'),
     slug: formData.get('slug'),
     content: formData.get('content'),
     image_url: formData.get('image_url'),
@@ -69,10 +73,16 @@ export async function upsertPost(
 
   const { id, tags, ...postData } = validatedFields.data;
 
+  // Perbaikan di sini: Pastikan dataToUpsert berisi semua data dari postData
+  const dataToUpsert = {
+      ...postData,
+      published_at: postData.is_published && !id ? new Date().toISOString() : undefined,
+  };
+
   try {
     const { data: upsertedPost, error } = await supabaseAdmin
       .from('posts')
-      .upsert({ id, ...postData })
+      .upsert({ id, ...dataToUpsert }) // Gunakan dataToUpsert
       .select('id')
       .single();
       
