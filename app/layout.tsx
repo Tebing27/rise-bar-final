@@ -2,8 +2,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import AuthProvider from '@/components/providers/AuthProvider'; // Impor provider
-import { Navbar } from '@/components/shared/Navbar';       // Impor Navbar
+import AuthProvider from '@/components/providers/AuthProvider';
+import { Navbar } from '@/components/shared/Navbar';
+import { Footer } from '@/components/shared/Footer'; // <-- Impor Footer
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,10 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider> {/* Bungkus semua dengan AuthProvider */}
-          <Navbar /> {/* Tampilkan Navbar di semua halaman */}
-          <main>{children}</main> {/* Konten halaman akan muncul di sini */}
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
+        <AuthProvider>
+          <Navbar />
+          {/* Tambahkan flex-grow agar konten mengisi ruang */}
+          <main className="flex-grow">{children}</main>
+          <Footer /> {/* <-- Tambahkan Footer di sini */}
         </AuthProvider>
       </body>
     </html>

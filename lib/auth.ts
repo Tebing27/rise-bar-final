@@ -1,94 +1,72 @@
-
+// lib/auth.ts
 import NextAuth from "next-auth";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import Credentials from "next-auth/providers/credentials";
-// Pastikan baris ini mengimpor supabaseAdmin, BUKAN db dari lib/supabase
-import { supabaseAdmin as db } from '@/lib/supabase-admin'; 
+import { supabaseAdmin } from '@/lib/supabase-admin'; // Gunakan admin client
 import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: SupabaseAdapter({
-         url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-     }),
+  // PERBAIKAN 1: Tambahkan session strategy secara eksplisit
   session: { strategy: "jwt" },
+  
+  adapter: SupabaseAdapter({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  }),
+
   providers: [
     Credentials({
       async authorize(credentials) {
-        console.log("\n--- PROSES OTORISASI DIMULAI ---");
+        if (!credentials?.email || !credentials.password) return null;
 
-        if (!credentials?.email || !credentials.password) {
-          console.log("[GAGAL] Email atau password tidak dikirim.");
-          return null;
+        const { data: user, error } = await supabaseAdmin
+          .from("users")
+          .select("*, role:roles(name)")
+          .eq("email", credentials.email as string)
+          .single();
+
+        if (error || !user) return null;
+
+        // @ts-ignore - Pastikan user.role ada sebelum diakses
+        if (!user.role) return null; 
+
+        const passwordsMatch = await bcrypt.compare(
+          credentials.password as string,
+          user.password_hash || ""
+        );
+
+        if (passwordsMatch) {
+          return { 
+              id: user.id, 
+              email: user.email, 
+              name: user.name, 
+              image: user.image,
+              // @ts-ignore
+              role: user.role.name
+            };
         }
-
-        console.log(`[INFO] Mencoba login dengan email: ${credentials.email}`);
-
-        try {
-          // Gunakan client admin untuk membaca tabel user
-          const { data: user, error: userError } = await db
-            .from('users')
-            .select('*, role:roles(name)')
-            .eq('email', credentials.email as string)
-            .single();
-
-          if (userError) {
-            console.error('[ERROR DB] Gagal mengambil data user:', userError.message);
-            return null;
-          }
-
-          if (!user) {
-            console.log('[GAGAL] Pengguna dengan email tersebut tidak ditemukan di database.');
-            return null;
-          }
-
-          console.log('[OK] Pengguna ditemukan:', { id: user.id, email: user.email });
-
-          if (!user.password_hash) {
-            console.log('[GAGAL] Pengguna ini tidak memiliki hash password di database.');
-            return null;
-          }
-
-          console.log('[INFO] Membandingkan password...');
-          const passwordsMatch = await bcrypt.compare(
-            credentials.password as string,
-            user.password_hash
-          );
-
-          if (passwordsMatch) {
-            console.log('✅ [BERHASIL] Password cocok! Login seharusnya berhasil.');
-            // @ts-ignore
-            return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role.name };
-          } else {
-            console.log('[GAGAL] Password tidak cocok.');
-            return null;
-          }
-
-        } catch (e) {
-          console.error("--- KESALAHAN KRITIS DI FUNGSI AUTHORIZE ---", e);
-          return null;
-        }
+        return null;
       },
     }),
-],
+  ],
   callbacks: {
-    // Callback ini digunakan untuk memasukkan 'role' ke dalam token JWT
+    // PERBAIKAN 2: Pastikan callback jwt dan session sudah benar
     async jwt({ token, user }) {
       if (user) {
+        token.sub = user.id; // Gunakan 'sub' untuk user id
         token.role = user.role;
       }
       return token;
     },
-    // Callback ini digunakan untuk memasukkan 'role' dari token ke dalam object `session`
-    // agar bisa diakses di sisi client (misal: `session.user.role`)
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.sub as string;
         session.user.role = token.role;
       }
       return session;
     },
   },
   pages: {
-    signIn: "/login", // Arahkan ke halaman login kustom kita
+    signIn: "/login",
   },
 });

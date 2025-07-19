@@ -1,51 +1,133 @@
 // components/tracker/TrackerForm.tsx
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
-import { addFoodEntry, type FormState } from '@/lib/actions/trackerActions';
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="md:col-start-3 w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:bg-indigo-300"
-    >
-      {pending ? 'Menyimpan...' : 'Simpan'}
-    </button>
-  );
-}
+import { useEffect, useState, useTransition } from 'react';
+import { addFoodEntry } from '@/lib/actions/trackerActions';
+import { searchFood } from '@/lib/actions/fatsecretActions';
+import { useRouter } from 'next/navigation';
 
 export function TrackerForm({ userId }: { userId: string }) {
-  const initialState: FormState = { success: false };
-  const [formState, formAction] = useActionState(addFoodEntry, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState('');
+  const [foodList, setFoodList] = useState<any[]>([]);
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+
+  // DEBUG: Log userId saat component mount
+  useEffect(() => {
+    console.log('🔍 DEBUG: userId received in TrackerForm:', userId);
+    console.log('🔍 DEBUG: userId type:', typeof userId);
+    console.log('🔍 DEBUG: userId length:', userId?.length);
+  }, [userId]);
 
   useEffect(() => {
-    if (formState.success) {
-      formRef.current?.reset();
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
     }
-  }, [formState]);
+    const handler = setTimeout(async () => {
+      const results = await searchFood(query);
+      setSuggestions(results);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [query]);
+
+  const handleAddFoodToList = (food: any) => {
+    setFoodList(currentList => [...currentList, food]);
+    setQuery('');
+    setSuggestions([]);
+  };
+
+  const handleRemoveFood = (foodId: string) => {
+    setFoodList(currentList => currentList.filter(f => f.food_id !== foodId));
+  };
+
+  const handleSubmit = (formData: FormData) => {
+    setMessage('');
+    
+    // DEBUG: Log form data
+    console.log('🔍 DEBUG: Form data being submitted:');
+    console.log('🔍 DEBUG: userId from form:', formData.get('userId'));
+    console.log('🔍 DEBUG: foodIds:', formData.getAll('foodIds'));
+    console.log('🔍 DEBUG: foodNames:', formData.getAll('foodNames'));
+    
+    startTransition(async () => {
+      const result = await addFoodEntry({ success: false }, formData);
+      
+      console.log('🔍 DEBUG: addFoodEntry result:', result);
+      
+      if (result.success) {
+        setMessage(result.message || 'Sukses!');
+        setFoodList([]);
+        router.refresh();
+      } else {
+        setMessage(result.message || 'Terjadi kesalahan.');
+      }
+    });
+  };
 
   return (
     <div className="mb-8 p-6 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold mb-4">Tambah Makanan Baru</h2>
-      <form ref={formRef} action={formAction} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      
+      {/* DEBUG INFO */}
+      <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+        <strong>DEBUG INFO:</strong> userId = {userId}
+      </div>
+      
+      {/* Kolom Pencarian */}
+      <div className="relative mb-4">
+        <label htmlFor="foodName" className="block text-sm font-medium text-gray-700">Cari Makanan</label>
+        <input
+          type="text"
+          id="foodName"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Ketik nama makanan..."
+          autoComplete="off"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+        />
+        {suggestions.length > 0 && (
+          <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto">
+            {suggestions.map((food) => (
+              <li key={food.food_id} onClick={() => handleAddFoodToList(food)} className="p-2 hover:bg-gray-100 cursor-pointer">
+                {food.food_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Form Utama untuk Submit */}
+      <form action={handleSubmit}>
         <input type="hidden" name="userId" value={userId} />
-        <div className="md:col-span-2">
-          <label htmlFor="foodName" className="block text-sm font-medium text-gray-700">Nama Makanan</label>
-          <input type="text" name="foodName" id="foodName" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-          {formState.errors?.foodName && <p className="text-red-500 text-xs mt-1">{formState.errors.foodName[0]}</p>}
+
+        {/* Daftar Makanan yang Dipilih */}
+        <div className="space-y-2 mb-4">
+            {foodList.length === 0 && <p className="text-sm text-gray-500">Belum ada makanan yang dipilih.</p>}
+            {foodList.map(food => (
+                <div key={food.food_id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                    <span>{food.food_name}</span>
+                    <button type="button" onClick={() => handleRemoveFood(food.food_id)} className="text-red-500 hover:text-red-700">
+                        Hapus
+                    </button>
+                    <input type="hidden" name="foodIds" value={food.food_id} />
+                    <input type="hidden" name="foodNames" value={food.food_name} />
+                </div>
+            ))}
         </div>
-        <div>
-          <label htmlFor="carbs" className="block text-sm font-medium text-gray-700">Karbohidrat (gram)</label>
-          <input type="number" name="carbs" id="carbs" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-           {formState.errors?.carbs && <p className="text-red-500 text-xs mt-1">{formState.errors.carbs[0]}</p>}
+        
+        <div className="text-right">
+          <button
+            type="submit"
+            disabled={foodList.length === 0 || isPending}
+            className="w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:bg-gray-400"
+          >
+            {isPending ? 'Menyimpan...' : 'Simpan'}
+          </button>
         </div>
-        <SubmitButton />
-        {formState.message && <p className={`md:col-span-3 text-sm ${formState.success ? 'text-green-600' : 'text-red-500'}`}>{formState.message}</p>}
+        {message && <p className="text-sm mt-2 text-green-600">{message}</p>}
       </form>
     </div>
   );
