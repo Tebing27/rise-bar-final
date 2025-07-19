@@ -42,7 +42,7 @@ export async function upsertUser(
   // ✨ THE FIX IS HERE ✨
   // Prepare the data for upsert. If the id is an empty string, treat it as undefined.
   // This tells Supabase to generate a new UUID for a new record.
-  const dataToUpsert: any = { 
+  const dataToUpsert: { [key: string]: unknown; id?: string } = { 
     ...userData,
     id: id || undefined 
   };

@@ -1,5 +1,3 @@
-// app/api/sign-cloudinary-params/route.ts
-
 import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
 
@@ -16,7 +14,7 @@ export async function POST(request: Request) {
   try {
     const signature = cloudinary.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET!);
     return NextResponse.json({ signature });
-  } catch (error) {
+  } catch {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

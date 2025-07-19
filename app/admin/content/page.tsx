@@ -1,7 +1,6 @@
 // app/admin/content/page.tsx
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
 async function getSiteContent() {
   const { data } = await supabaseAdmin.from('site_content').select('*');

@@ -6,19 +6,24 @@ import { addFoodEntry } from '@/lib/actions/trackerActions';
 import { searchFood } from '@/lib/actions/fatsecretActions';
 import { useRouter } from 'next/navigation';
 
+// SOLUSI: Definisikan tipe untuk data makanan dari API
+interface FoodSuggestion {
+  food_id: string;
+  food_name: string;
+  // Tambahkan properti lain jika Anda membutuhkannya dari API
+}
+
 export function TrackerForm({ userId }: { userId: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
-  const [foodList, setFoodList] = useState<any[]>([]);
+  // SOLUSI: Terapkan tipe FoodSuggestion pada state
+  const [foodList, setFoodList] = useState<FoodSuggestion[]>([]);
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<FoodSuggestion[]>([]);
 
-  // DEBUG: Log userId saat component mount
   useEffect(() => {
     console.log('🔍 DEBUG: userId received in TrackerForm:', userId);
-    console.log('🔍 DEBUG: userId type:', typeof userId);
-    console.log('🔍 DEBUG: userId length:', userId?.length);
   }, [userId]);
 
   useEffect(() => {
@@ -33,7 +38,8 @@ export function TrackerForm({ userId }: { userId: string }) {
     return () => clearTimeout(handler);
   }, [query]);
 
-  const handleAddFoodToList = (food: any) => {
+  // SOLUSI: Beri tipe pada parameter 'food'
+  const handleAddFoodToList = (food: FoodSuggestion) => {
     setFoodList(currentList => [...currentList, food]);
     setQuery('');
     setSuggestions([]);
@@ -45,18 +51,8 @@ export function TrackerForm({ userId }: { userId: string }) {
 
   const handleSubmit = (formData: FormData) => {
     setMessage('');
-    
-    // DEBUG: Log form data
-    console.log('🔍 DEBUG: Form data being submitted:');
-    console.log('🔍 DEBUG: userId from form:', formData.get('userId'));
-    console.log('🔍 DEBUG: foodIds:', formData.getAll('foodIds'));
-    console.log('🔍 DEBUG: foodNames:', formData.getAll('foodNames'));
-    
     startTransition(async () => {
       const result = await addFoodEntry({ success: false }, formData);
-      
-      console.log('🔍 DEBUG: addFoodEntry result:', result);
-      
       if (result.success) {
         setMessage(result.message || 'Sukses!');
         setFoodList([]);
@@ -71,12 +67,6 @@ export function TrackerForm({ userId }: { userId: string }) {
     <div className="mb-8 p-6 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold mb-4">Tambah Makanan Baru</h2>
       
-      {/* DEBUG INFO */}
-      <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-        <strong>DEBUG INFO:</strong> userId = {userId}
-      </div>
-      
-      {/* Kolom Pencarian */}
       <div className="relative mb-4">
         <label htmlFor="foodName" className="block text-sm font-medium text-gray-700">Cari Makanan</label>
         <input
@@ -99,11 +89,8 @@ export function TrackerForm({ userId }: { userId: string }) {
         )}
       </div>
 
-      {/* Form Utama untuk Submit */}
       <form action={handleSubmit}>
         <input type="hidden" name="userId" value={userId} />
-
-        {/* Daftar Makanan yang Dipilih */}
         <div className="space-y-2 mb-4">
             {foodList.length === 0 && <p className="text-sm text-gray-500">Belum ada makanan yang dipilih.</p>}
             {foodList.map(food => (

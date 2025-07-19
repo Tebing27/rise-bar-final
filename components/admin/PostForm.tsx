@@ -3,60 +3,42 @@
 
 import { useActionState } from 'react';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react'; // <-- 1. Impor useSession
 import type { FormState } from '@/lib/actions/trackerActions';
-import { getCloudinarySignature, upsertPost } from '@/lib/actions/blogActions';
+import { upsertPost } from '@/lib/actions/blogActions';
 import { PostFormButton } from './PostFormButton';
 import Image from 'next/image';
-import { CldUploadWidget } from 'next-cloudinary';
+import { CldUploadWidget, type CloudinaryUploadWidgetResults } from 'next-cloudinary';
 
-// Terima `post` sebagai prop, bisa null jika ini form baru
-export function PostForm({ post, tags, authors }: { post?: any | null; tags?: string, authors?: any[] }) {
+// Tipe Post tidak perlu diubah
+interface Post {
+  id?: string;
+  title?: string;
+  slug?: string;
+  author_name?: string;
+  image_url?: string;
+  content?: string;
+  is_published?: boolean;
+  is_popular?: boolean;
+}
+
+// Hapus 'authors' dari props karena tidak lagi digunakan
+export function PostForm({ post, tags }: { post?: Post | null; tags?: string; }) {
+  const { data: session } = useSession(); // <-- 2. Dapatkan data sesi
   const initialState: FormState = { success: false };
   const [state, formAction] = useActionState(upsertPost, initialState);
   const [imageUrl, setImageUrl] = useState(post?.image_url || '');
 
-    // State untuk menyimpan URL gambar dan status loading
-    const [isUploading, setIsUploading] = useState(false);
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-    
-        setIsUploading(true);
-    
-        // 1. Dapatkan signature dari server
-        const { timestamp, signature } = await getCloudinarySignature();
-    
-        // 2. Siapkan form data untuk dikirim ke Cloudinary
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-        formData.append('signature', signature);
-        formData.append('timestamp', timestamp.toString());
-    
-        // 3. Kirim langsung ke API Cloudinary
-        const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
-        
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          body: formData,
-        });
-    
-        if (response.ok) {
-          const data = await response.json();
-          setImageUrl(data.secure_url);
-        } else {
-         const errorData = await response.json();
-         console.error('Upload gambar gagal, respons dari Cloudinary:', errorData);
-        }
-        setIsUploading(false);
-      };       
+  // Ambil nama penulis dari sesi, berikan fallback jika tidak ada
+  const authorName = session?.user?.name ?? 'Admin';
 
   return (
     <form action={formAction} className="space-y-6">
-      {/* Kirim id jika ada (untuk mode edit) */}
       {post?.id && <input type="hidden" name="id" value={post.id} />}
       
+      {/* 3. Tambahkan input tersembunyi untuk nama penulis */}
+      <input type="hidden" name="author_name" value={authorName} />
+
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">Judul Artikel</label>
         <input type="text" name="title" id="title" defaultValue={post?.title} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
@@ -66,48 +48,38 @@ export function PostForm({ post, tags, authors }: { post?: any | null; tags?: st
       <div>
         <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug (URL)</label>
         <input type="text" name="slug" id="slug" defaultValue={post?.slug} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-         {state.errors?.slug && <p className="text-red-500 text-xs mt-1">{state.errors.slug[0]}</p>}
+        {state.errors?.slug && <p className="text-red-500 text-xs mt-1">{state.errors.slug[0]}</p>}
+      </div>
+      
+      {/* 4. Hapus dropdown penulis dan ganti dengan teks biasa */}
+      <div>
+        <span className="block text-sm font-medium text-gray-700">Nama Penulis</span>
+        <p className="mt-1 text-sm text-gray-900 p-2 bg-gray-100 rounded-md">{authorName}</p>
       </div>
 
-      <div>
-        <label htmlFor="author_name" className="block text-sm font-medium text-gray-700">Nama Penulis</label>
-        <input 
-          type="text" 
-          name="author_name" 
-          id="author_name" 
-          defaultValue={post?.author_name} 
-          required 
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
-         {state.errors?.author_name && <p className="text-red-500 text-xs mt-1">{state.errors.author_name[0]}</p>}
-      </div>
-      {/* Input Gambar Menggunakan Widget */}
       <div>
         <label className="block text-sm font-medium text-gray-700">Gambar Utama</label>
-        {/* Widget Upload */}
         <CldUploadWidget
-          signatureEndpoint="/api/sign-cloudinary-params" // Endpoint ini akan kita buat
-          onSuccess={(result: any) => {
-            setImageUrl(result.info.secure_url);
+          signatureEndpoint="/api/sign-cloudinary-params"
+          onSuccess={(result: CloudinaryUploadWidgetResults) => {
+            if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+              setImageUrl(result.info.secure_url);
+            }
           }}
         >
-          {({ open }) => {
-            return (
-              <button
-                type="button"
-                onClick={() => open()}
-                className="mt-1 w-full rounded-md border-2 border-dashed border-gray-300 px-6 py-3 text-center text-sm text-gray-600 hover:border-gray-400"
-              >
-                Upload Gambar
-              </button>
-            );
-          }}
+          {({ open }) => (
+            <button
+              type="button"
+              onClick={() => open()}
+              className="mt-1 w-full rounded-md border-2 border-dashed border-gray-300 px-6 py-3 text-center text-sm text-gray-600 hover:border-gray-400"
+            >
+              Upload Gambar
+            </button>
+          )}
         </CldUploadWidget>
 
-        {/* Hidden input untuk menyimpan URL gambar */}
         <input type="hidden" name="image_url" value={imageUrl} />
         
-        {/* Tampilkan preview gambar jika ada */}
         {imageUrl && (
           <div className="mt-4">
             <p className="text-sm text-gray-500 mb-2">Preview:</p>
@@ -124,7 +96,7 @@ export function PostForm({ post, tags, authors }: { post?: any | null; tags?: st
           type="text" 
           name="tags" 
           id="tags" 
-          defaultValue={tags} // Gunakan prop tags
+          defaultValue={tags}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
           placeholder="contoh: diet, sehat, tips gula"
         />

@@ -1,6 +1,5 @@
 // app/(main)/blog/[slug]/page.tsx
 import { db } from '@/lib/supabase';
-import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { auth } from '@/lib/auth';
 
@@ -16,7 +15,7 @@ export default async function BlogPostPage({
   const session = await auth();
 
   // 1. Ambil data post terlebih dahulu
-  const { data: post, error } = await db
+  const { data: post } = await db
     .from('posts')
     .select(`*, tags(name)`)
     .eq('slug', slug)

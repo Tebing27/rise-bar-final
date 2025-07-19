@@ -1,7 +1,7 @@
 // components/auth/RegisterForm.tsx
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState} from 'react';
 // Hapus atau ganti 'useFormState' dari 'react-dom'
 import { useFormStatus } from 'react-dom';
 
@@ -25,7 +25,6 @@ export function RegisterForm() {
     const initialState: FormState = { success: false };
     // Ganti useFormState menjadi useActionState
     const [formState, formAction] = useActionState(registerUser, initialState);
-    const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <form action={formAction} className="space-y-4">

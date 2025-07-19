@@ -1,16 +1,29 @@
 // components/admin/UserForm.tsx
-'use client'; // Tambahkan ini di baris pertama
+'use client';
 
 import { useActionState } from 'react';
 import { upsertUser } from "@/lib/actions/userActions";
-import type { FormState } from "@/lib/actions/userActions"; // Impor tipe
+import type { FormState } from "@/lib/actions/userActions";
 
-export function UserForm({ user, roles }: { user?: any, roles: any[] }) {
+// SOLUSI: Definisikan tipe untuk User dan Role
+interface Role {
+  id: string;
+  name: string;
+}
+
+interface User {
+  id?: string;
+  name?: string;
+  email?: string;
+  role_id?: string;
+}
+
+// SOLUSI: Gunakan tipe yang sudah didefinisikan di props
+export function UserForm({ user, roles }: { user?: User, roles: Role[] }) {
     const initialState: FormState = { success: false };
     const [state, formAction] = useActionState(upsertUser, initialState);
 
     return (
-        // Gunakan formAction dari hook
         <form action={formAction} className="space-y-6">
             <input type="hidden" name="id" value={user?.id || ''} />
             

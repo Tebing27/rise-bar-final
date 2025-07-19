@@ -37,7 +37,7 @@ async function handleTags(post_id: string, tagsString?: string | null) {
   const existingTagNames = existingTags?.map(t => t.name) || [];
 
   const newTagNames = tagNames.filter(name => !existingTagNames.includes(name));
-  let newTags: any[] = [];
+  let newTags: { id: string; name: string }[] = [];
 
   if (newTagNames.length > 0) {
     const { data } = await supabaseAdmin.from('tags').insert(newTagNames.map(name => ({ name }))).select();

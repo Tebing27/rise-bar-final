@@ -27,7 +27,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (error || !user) return null;
 
-        // @ts-ignore - Pastikan user.role ada sebelum diakses
         if (!user.role) return null; 
 
         const passwordsMatch = await bcrypt.compare(
@@ -41,7 +40,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email, 
               name: user.name, 
               image: user.image,
-              // @ts-ignore
               role: user.role.name
             };
         }

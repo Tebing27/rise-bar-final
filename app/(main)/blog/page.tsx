@@ -2,7 +2,22 @@ import { db } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image'; // Impor Image
 
-function BlogCard({ post }: { post: any }) {
+interface Tag {
+  name: string;
+}
+
+interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  image_url?: string;
+  author_name?: string;
+  published_at: string;
+  content?: string;
+  tags: Tag[];
+}
+
+function BlogCard({ post }: { post: Post }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -20,14 +35,14 @@ function BlogCard({ post }: { post: any }) {
       <div className="p-6">
         <div className="flex items-center text-sm text-gray-500 mb-2">
             {/* Ganti post.author?.name menjadi post.author_name */}
-            <span>Oleh: {post.author_name || 'Anonim'}</span>
+            <span>Oleh: {post.author_name || 'RiceBar'}</span>
             <span className="mx-2">•</span>
             <span>{new Date(post.published_at).toLocaleDateString()}</span>
         </div>
         <h3 className="text-2xl font-bold mb-2 text-gray-800">{post.title}</h3>
         {/* Tampilkan Tags di sini */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags?.map((tag: any) => (
+          {post.tags?.map((tag: Tag) => (
             <span key={tag.name} className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
               {tag.name}
             </span>

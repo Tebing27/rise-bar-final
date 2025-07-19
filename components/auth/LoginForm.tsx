@@ -29,7 +29,7 @@ export function LoginForm() {
         // Jika berhasil, arahkan ke halaman tracker
         router.push('/tracker');
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan. Coba beberapa saat lagi.');
     }
   };
