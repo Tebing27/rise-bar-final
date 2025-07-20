@@ -4,13 +4,14 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { Navbar } from '@/components/shared/Navbar';
-import { Footer } from '@/components/shared/Footer'; // <-- Impor Footer
+import { Footer } from '@/components/shared/Footer';
 
-const inter = Inter({ subsets: ['latin'] });
+// Inisialisasi font Inter
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Glucose Tracker',
-  description: 'Track your glucose levels with ease',
+  title: 'GlucoseTracker | Lacak Gula Darah Anda',
+  description: 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda.',
 };
 
 export default function RootLayout({
@@ -20,12 +21,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+      {/* Terapkan variabel font di sini */}
+      <body className={`${inter.variable} font-sans flex flex-col min-h-screen`}>
         <AuthProvider>
           <Navbar />
-          {/* Tambahkan flex-grow agar konten mengisi ruang */}
-          <main className="flex-grow">{children}</main>
-          <Footer /> {/* <-- Tambahkan Footer di sini */}
+          <main className="flex-grow pt-16">{children}</main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

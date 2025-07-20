@@ -1,110 +1,144 @@
-// lib/actions/trackerActions.ts
 'use server';
 
-import { z } from 'zod';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { getFoodDetails } from './fatsecretActions';
+import clientPromise from '@/lib/mongodb';
+import { auth } from '@/lib/auth'; // Pastikan path ini benar
+
+// Tipe data (tidak ada perubahan di sini)
+export interface FoodItem {
+  _id: string;
+  name: string;
+  serving_size: string;
+  sugar_g: number;
+}
+
+export interface GlucoseEntry {
+  id: string;
+  user_id: string;
+  created_at: string;
+  foods_consumed: FoodItem[];
+  total_sugar_g: number;
+  user_age?: number;
+  condition?: string;
+  // Tambahkan properti ini agar sesuai dengan data dari page.tsx
+  food_name: string;
+  serving_size?: string;
+  sugar_g?: number;
+  notes?: string;
+}
 
 export type FormState = {
-  success: boolean;
-  message?: string;
-  errors?: { [key: string]: string[] | undefined; };
+  success?: string;
+  error?: string;
 };
 
-const FoodEntrySchema = z.object({
-  userId: z.string().uuid(),
-  foodIds: z.preprocess((val) => Array.isArray(val) ? val : [val], z.array(z.string())),
-  foodNames: z.preprocess((val) => Array.isArray(val) ? val : [val], z.array(z.string())),
-});
+// Fungsi searchFoods (tidak ada perubahan)
+export async function searchFoods(query: string): Promise<FoodItem[]> {
+  if (!query) return [];
+  try {
+    const mongoClient = await clientPromise;
+    const db = mongoClient.db('RiseBar');
+    const foods = await db
+      .collection('foods')
+      .find({ name: { $regex: query, $options: 'i' } })
+      .limit(10)
+      .toArray();
+    return JSON.parse(JSON.stringify(foods));
+  } catch (error) {
+    console.error("Error searching foods:", error);
+    return [];
+  }
+}
 
-export async function addFoodEntry(
-  prevState: FormState,
+// Fungsi addMealEntry (sudah benar, tidak ada perubahan)
+export async function addMealEntry(
+  prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
-  console.log('🔍 DEBUG: addFoodEntry called');
-  console.log('🔍 DEBUG: Raw form data:', {
-    userId: formData.get('userId'),
-    foodIds: formData.getAll('foodIds'),
-    foodNames: formData.getAll('foodNames'),
-  });
+  const supabase = await createClient(); // `await` sudah ada di sini
+  const session = await auth();
+  const user = session?.user;
 
-  const validatedFields = FoodEntrySchema.safeParse({
-    userId: formData.get('userId'),
-    foodIds: formData.getAll('foodIds'),
-    foodNames: formData.getAll('foodNames'),
-  });
+  if (!user) return { error: 'Unauthorized. Silakan login terlebih dahulu.' };
 
-  if (!validatedFields.success) {
-    console.log('🔍 DEBUG: Validation failed:', validatedFields.error.flatten().fieldErrors);
-    return {
-      success: false,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
+  const foodsJson = formData.get('foods_consumed') as string;
+  const userAge = formData.get('user_age') as string;
+  const condition = formData.get('condition') as string;
+
+  if (!foodsJson || foodsJson === '[]') {
+    return { error: 'Anda harus memilih minimal satu makanan.' };
   }
-  
-  const { userId, foodIds, foodNames } = validatedFields.data;
-  console.log('🔍 DEBUG: Validated data:', { userId, foodIds, foodNames });
-  
+
+  let foods: FoodItem[];
   try {
-    const entriesToInsert = [];
-    for (let i = 0; i < foodIds.length; i++) {
-      const foodId = foodIds[i];
-      const foodName = foodNames[i];
-
-      console.log(`🔍 DEBUG: Processing food ${i + 1}: ${foodName} (ID: ${foodId})`);
-
-      const details = await getFoodDetails(foodId);
-      if (!details) {
-        console.log(`🔍 DEBUG: No details found for food ${foodId}`);
-        continue;
-      }
-
-      const serving = Array.isArray(details.servings.serving) 
-        ? details.servings.serving[0] 
-        : details.servings.serving;
-      
-      console.log('🔍 DEBUG: Serving data:', serving);
-
-      if (serving && serving.carbohydrate !== undefined) {
-        const entry = {
-          user_id: userId,
-          food_name: foodName,
-          estimated_carbs_g: parseFloat(serving.carbohydrate),
-        };
-        entriesToInsert.push(entry);
-        console.log('🔍 DEBUG: Added entry:', entry);
-      }
-    }
-    
-    console.log('🔍 DEBUG: Total entries to insert:', entriesToInsert.length);
-    console.log('🔍 DEBUG: Entries data:', entriesToInsert);
-
-    if (entriesToInsert.length === 0) {
-        throw new Error("Tidak ada data nutrisi valid yang bisa disimpan.");
-    }
-
-    // Insert dengan logging
-    console.log('🔍 DEBUG: Inserting to Supabase...');
-    const { data, error: insertError } = await supabaseAdmin
-      .from('glucose_entries')
-      .insert(entriesToInsert)
-      .select(); // Tambahkan select untuk melihat data yang diinsert
-
-    console.log('🔍 DEBUG: Insert result:', { data, error: insertError });
-
-    if (insertError) {
-      console.log('🔍 DEBUG: Insert error details:', insertError);
-      throw new Error(insertError.message);
-    }
-
-    revalidatePath('/tracker');
-    console.log('🔍 DEBUG: Success! Revalidated path.');
-    return { success: true, message: `${entriesToInsert.length} makanan berhasil ditambahkan!` };
-
+    foods = JSON.parse(foodsJson);
   } catch (e) {
-    const error = e as Error;
-    console.log('🔍 DEBUG: Caught error:', error);
-    return { success: false, message: `Terjadi kesalahan: ${error.message}` };
+    return { error: 'Data makanan tidak valid.' };
   }
+
+  const totalSugar = foods.reduce((acc, food) => acc + food.sugar_g, 0);
+
+  const newEntry = {
+    user_id: user.id,
+    foods_consumed: foods,
+    total_sugar_g: totalSugar,
+    user_age: userAge ? parseInt(userAge) : null,
+    condition: condition,
+  };
+
+  const { error } = await supabase.from('glucose_entries').insert([newEntry]);
+
+  if (error) {
+    console.error("Error adding meal entry:", error);
+    return { error: 'Gagal menyimpan data ke database.' };
+  }
+
+  revalidatePath('/tracker');
+  return { success: 'Data makanan berhasil disimpan!' };
+}
+
+// Mengambil semua entri (dengan perbaikan)
+export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
+  const supabase = await createClient(); // <-- PERBAIKAN 1: Tambahkan 'await'
+  const session = await auth(); // <-- PERBAIKAN 2: Gunakan sesi NextAuth
+  const user = session?.user;
+
+  if (!user) return []; // Jika tidak ada user, kembalikan array kosong
+
+  const { data, error } = await supabase
+    .from('glucose_entries')
+    .select('*')
+    .eq('user_id', user.id) // <-- PERBAIKAN 3: Ambil data milik user yang login saja
+    .order('created_at', { ascending: false });
+    
+  if (error) {
+      console.error("Error fetching tracker entries:", error);
+      return [];
+  }
+  return data as GlucoseEntry[];
+}
+
+// Menghapus entri (dengan perbaikan)
+export async function deleteTrackerEntry(id: string): Promise<FormState> {
+  const supabase = await createClient(); // <-- PERBAIKAN 1: Tambahkan 'await'
+  const session = await auth(); // <-- PERBAIKAN 2: Gunakan sesi NextAuth
+  const user = session?.user;
+
+  if (!user) return { error: 'Unauthorized' };
+
+  // Validasi tambahan: pastikan user hanya bisa menghapus datanya sendiri
+  const { error } = await supabase
+    .from('glucose_entries')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id); // <-- PERBAIKAN 3: Tambahkan cek user_id
+
+  if (error) {
+    console.error("Error deleting entry:", error);
+    return { error: 'Gagal menghapus data.' };
+  }
+
+  revalidatePath('/tracker');
+  return { success: 'Data berhasil dihapus.' };
 }

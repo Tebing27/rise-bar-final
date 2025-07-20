@@ -1,121 +1,161 @@
-// components/tracker/TrackerForm.tsx
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
-import { addFoodEntry } from '@/lib/actions/trackerActions';
-import { searchFood } from '@/lib/actions/fatsecretActions';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { addMealEntry, searchFoods, FormState, FoodItem } from '@/lib/actions/trackerActions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Toaster, toast } from 'sonner';
 
-// SOLUSI: Definisikan tipe untuk data makanan dari API
-interface FoodSuggestion {
-  food_id: string;
-  food_name: string;
-  // Tambahkan properti lain jika Anda membutuhkannya dari API
+// Tombol Submit dengan status loading
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? 'Menyimpan...' : 'Simpan Catatan Makanan'}
+    </Button>
+  );
 }
 
-export function TrackerForm({ userId }: { userId: string }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState('');
-  // SOLUSI: Terapkan tipe FoodSuggestion pada state
-  const [foodList, setFoodList] = useState<FoodSuggestion[]>([]);
+export default function TrackerForm() {
+  const initialState: FormState | null = null;
+  // Pastikan menggunakan addMealEntry, bukan addTrackerEntry
+  const [state, formAction] = useActionState(addMealEntry, initialState); 
+
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<FoodSuggestion[]>([]);
+  const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
+  const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
 
+  // Menampilkan notifikasi dan mereset form setelah berhasil
   useEffect(() => {
-    console.log('🔍 DEBUG: userId received in TrackerForm:', userId);
-  }, [userId]);
+    if (state?.error) toast.error(state.error);
+    if (state?.success) {
+      toast.success(state.success);
+      setSelectedFoods([]); // Kosongkan keranjang makanan
+      setQuery('');
+    }
+  }, [state]);
 
+  // Mencari makanan saat pengguna mengetik
   useEffect(() => {
     if (query.length < 2) {
-      setSuggestions([]);
+      setSearchResults([]);
       return;
     }
-    const handler = setTimeout(async () => {
-      const results = await searchFood(query);
-      setSuggestions(results);
-    }, 300);
-    return () => clearTimeout(handler);
+    const fetchFoods = async () => {
+      const results = await searchFoods(query);
+      setSearchResults(results);
+    };
+    const debounce = setTimeout(() => fetchFoods(), 300);
+    return () => clearTimeout(debounce);
   }, [query]);
 
-  // SOLUSI: Beri tipe pada parameter 'food'
-  const handleAddFoodToList = (food: FoodSuggestion) => {
-    setFoodList(currentList => [...currentList, food]);
+  // Menambahkan makanan ke "keranjang"
+  const addFoodToSelection = (food: FoodItem) => {
+    // Hindari duplikat
+    if (!selectedFoods.find(f => f._id === food._id)) {
+        setSelectedFoods([...selectedFoods, food]);
+    }
     setQuery('');
-    setSuggestions([]);
+    setSearchResults([]);
   };
 
-  const handleRemoveFood = (foodId: string) => {
-    setFoodList(currentList => currentList.filter(f => f.food_id !== foodId));
-  };
-
-  const handleSubmit = (formData: FormData) => {
-    setMessage('');
-    startTransition(async () => {
-      const result = await addFoodEntry({ success: false }, formData);
-      if (result.success) {
-        setMessage(result.message || 'Sukses!');
-        setFoodList([]);
-        router.refresh();
-      } else {
-        setMessage(result.message || 'Terjadi kesalahan.');
-      }
-    });
+  // Menghapus makanan dari "keranjang"
+  const removeFoodFromSelection = (foodId: string) => {
+    setSelectedFoods(selectedFoods.filter(food => food._id !== foodId));
   };
 
   return (
-    <div className="mb-8 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Tambah Makanan Baru</h2>
-      
-      <div className="relative mb-4">
-        <label htmlFor="foodName" className="block text-sm font-medium text-gray-700">Cari Makanan</label>
+    <>
+      <Toaster position="top-center" richColors />
+      <form
+        action={formAction}
+        key={state?.success ? Date.now() : 'static-key'} // Reset form on success
+        className="space-y-6 p-6 border rounded-lg bg-white shadow-sm"
+      >
+        {/* Input tersembunyi untuk mengirim data "keranjang" makanan */}
         <input
-          type="text"
-          id="foodName"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ketik nama makanan..."
-          autoComplete="off"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          type="hidden"
+          name="foods_consumed"
+          value={JSON.stringify(selectedFoods)}
         />
-        {suggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto">
-            {suggestions.map((food) => (
-              <li key={food.food_id} onClick={() => handleAddFoodToList(food)} className="p-2 hover:bg-gray-100 cursor-pointer">
-                {food.food_name}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 
-      <form action={handleSubmit}>
-        <input type="hidden" name="userId" value={userId} />
-        <div className="space-y-2 mb-4">
-            {foodList.length === 0 && <p className="text-sm text-gray-500">Belum ada makanan yang dipilih.</p>}
-            {foodList.map(food => (
-                <div key={food.food_id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                    <span>{food.food_name}</span>
-                    <button type="button" onClick={() => handleRemoveFood(food.food_id)} className="text-red-500 hover:text-red-700">
-                        Hapus
-                    </button>
-                    <input type="hidden" name="foodIds" value={food.food_id} />
-                    <input type="hidden" name="foodNames" value={food.food_name} />
+        {/* Bagian Pencarian Makanan */}
+        <div className="relative">
+          <Label htmlFor="food_search">Cari & Tambah Makanan</Label>
+          <Input
+            id="food_search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ketik nama makanan..."
+            autoComplete="off"
+          />
+          {searchResults.length > 0 && (
+            <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {searchResults.map((food) => (
+                <li
+                  key={food._id}
+                  onClick={() => addFoodToSelection(food)}
+                  className="p-3 hover:bg-gray-100 cursor-pointer text-sm"
+                >
+                  {food.name} 
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Daftar Makanan yang Dipilih ("Keranjang") */}
+        <div>
+            <Label>Makanan yang Akan Dicatat</Label>
+            {selectedFoods.length > 0 ? (
+                <div className="mt-2 space-y-2 p-3 border rounded-md bg-gray-50">
+                    {selectedFoods.map(food => (
+                        <div key={food._id} className="flex justify-between items-center text-sm">
+                            <span>{food.name}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-gray-500">{food.sugar_g}g</span>
+                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFoodFromSelection(food._id)}>
+                                    &times;
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="border-t pt-2 mt-2 font-bold flex justify-between">
+                        <span>Total Gula</span>
+                        <span>{selectedFoods.reduce((acc, f) => acc + f.sugar_g, 0).toFixed(1)}g</span>
+                    </div>
                 </div>
-            ))}
+            ) : (
+                <p className="text-sm text-gray-500 mt-2">Belum ada makanan yang dipilih.</p>
+            )}
         </div>
-        
-        <div className="text-right">
-          <button
-            type="submit"
-            disabled={foodList.length === 0 || isPending}
-            className="w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:bg-gray-400"
-          >
-            {isPending ? 'Menyimpan...' : 'Simpan'}
-          </button>
+
+        {/* Input Tambahan */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <Label htmlFor="user_age">Usia (tahun)</Label>
+                <Input id="user_age" name="user_age" type="number" placeholder="Masukkan usia Anda" />
+            </div>
+            <div>
+                <Label htmlFor="condition">Kondisi</Label>
+                <Select name="condition" defaultValue="Setelah Makan">
+                    <SelectTrigger>
+                        <SelectValue placeholder="Pilih kondisi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Setelah Makan">Setelah Makan</SelectItem>
+                        <SelectItem value="Sebelum Makan (Puasa)">Sebelum Makan (Puasa)</SelectItem>
+                        <SelectItem value="Sewaktu">Sewaktu</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
-        {message && <p className="text-sm mt-2 text-green-600">{message}</p>}
+
+        <SubmitButton />
       </form>
-    </div>
+    </>
   );
 }

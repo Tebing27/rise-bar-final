@@ -1,97 +1,70 @@
 // app/(main)/tracker/page.tsx
-import { auth } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin'; // Ganti ke supabaseAdmin
-import { TrackerForm } from '@/components/tracker/TrackerForm';
-import { redirect } from 'next/navigation';
+import { getTrackerEntries, GlucoseEntry } from '@/lib/actions/solutionActions'; // Change to solutionActions
+import { getSolutions } from '@/lib/actions/solutionActions'; // Correct import for getSolutions
+import TrackerForm from '@/components/tracker/TrackerForm';
+import { DeleteEntryButton } from '@/components/tracker/DeleteEntryButton';
+// 2. Pastikan nama file komponen Anda benar (ExportButton bukan ExportDataButton)
+import ExportButton from '@/components/tracker/ExportDataButton'; 
 
-async function getFoodEntries(userId: string) {
-  console.log('🔍 DEBUG: getFoodEntries called with userId:', userId);
-  
-  const { data, error } = await supabaseAdmin // Gunakan supabaseAdmin
-    .from('glucose_entries')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-  
-  console.log('🔍 DEBUG: Query result:', { data, error });
-  console.log('🔍 DEBUG: Number of entries found:', data?.length || 0);
-  
-  return error ? [] : data;
-}
-
-async function getSolutions() {
-  const { data, error } = await supabaseAdmin.from('solutions').select('*');
-  return error ? [] : data;
+// 3. Definisikan tipe untuk data 'solutions'
+interface Solution {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
 }
 
 export default async function TrackerPage() {
-  const session = await auth();
-  
-  if (!session?.user?.id) {
-    redirect('/login');
-  }
-  const userId = session.user.id;
-  
-  console.log('🔍 DEBUG: TrackerPage userId:', userId);
+  const entries: GlucoseEntry[] = await getTrackerEntries();
+  const solutions: Solution[] = await getSolutions();
 
-  const [entries, solutions] = await Promise.all([
-    getFoodEntries(userId),
-    getSolutions()
-  ]);
+  const totalSugarToday = entries
+    // 4. Tambahkan tipe data pada parameter
+    .filter((entry: GlucoseEntry) => new Date(entry.created_at).toDateString() === new Date().toDateString())
+    .reduce((acc: number, entry: GlucoseEntry) => acc + (entry.sugar_g || 0), 0);
 
-  console.log('🔍 DEBUG: Final entries:', entries);
-
-  const totalCarbs = entries.reduce((sum, entry) => sum + (Number(entry.estimated_carbs_g) || 0), 0);
-
-  let currentRange = '';
-  if (totalCarbs <= 40) currentRange = 'Rendah';
-  else if (totalCarbs <= 100) currentRange = 'Normal';
-  else currentRange = 'Tinggi';
-  
-  const relevantSolution = solutions.find(
-    (s) => s.glucose_range.toLowerCase() === currentRange.toLowerCase()
-  );
+  const recommendation = totalSugarToday > 50
+    // 5. Tambahkan tipe data pada parameter
+    ? solutions.find((s: Solution) => s.title.toLowerCase().includes('gula')) || (solutions.length > 0 ? solutions[0] : null)
+    : null;
 
   return (
-    <div className="mx-auto max-w-4xl py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Glucose Tracker</h1>
-      
-      <TrackerForm userId={userId} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Riwayat Hari Ini</h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <ul className="divide-y divide-gray-200">
-              {entries.map((entry) => (
-                <li key={entry.id} className="px-6 py-4 flex justify-between items-center">
-                  <div>
-                    <p className="font-semibold text-gray-800">{entry.food_name}</p>
-                    <p className="text-sm text-gray-500">{new Date(entry.created_at).toLocaleTimeString()}</p>
-                  </div>
-                  <p className="text-lg font-medium">{entry.estimated_carbs_g}g Carbs</p>
-                </li>
-              ))}
-              {entries.length === 0 && <p className="p-6 text-gray-500">Belum ada data hari ini.</p>}
-            </ul>
-            <div className="bg-gray-50 px-6 py-3 font-bold text-right">Total Karbohidrat: {totalCarbs.toFixed(2)}g</div>
-          </div>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Tracker Gula Harian</h1>
+      <TrackerForm />
+
+      {recommendation && (
+        <div className="my-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+          <h3 className="font-bold">Rekomendasi untuk Anda!</h3>
+          <p>{recommendation.description}</p>
         </div>
-        <div>
-           <h2 className="text-xl font-semibold mb-4">Analisis & Saran</h2>
-           <div className="bg-white rounded-lg shadow p-6">
-              <p className="text-gray-600 mb-2">Total asupan karbohidrat Anda saat ini:</p>
-              <p className="text-3xl font-bold mb-4">{currentRange}</p>
-              {relevantSolution ? (
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Saran untuk Anda:</h3>
-                  <p className="text-gray-700">{relevantSolution.suggestion}</p>
+      )}
+
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Riwayat Konsumsi</h2>
+          <ExportButton entries={entries} />
+        </div>
+        <div className="space-y-3">
+          {entries && entries.length > 0 ? (
+            // 6. Tambahkan tipe data pada parameter
+            entries.map((entry: GlucoseEntry) => (
+              <div key={entry.id} className="flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-lg">{entry.food_name}</span>
+                  <span className="text-sm text-gray-500">
+                    {new Date(entry.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
-              ) : (
-                <p className="text-gray-500">Belum ada saran yang cocok untuk rentang ini.</p>
-              )}
-           </div>
+                <div className="flex items-center gap-4">
+                  <span className="font-medium text-gray-700">{entry.sugar_g || 0}g Gula</span>
+                  <DeleteEntryButton id={entry.id} />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center py-4">Belum ada riwayat konsumsi.</p>
+          )}
         </div>
       </div>
     </div>

@@ -4,65 +4,67 @@
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: '/', label: 'Beranda' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/#fitur', label: 'Fitur' },
+  ];
 
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex">
-            <Link
-              href="/"
-              className="flex flex-shrink-0 items-center font-bold"
-            >
+    <header className="fixed w-full bg-background/80 backdrop-blur-sm border-b z-50">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 justify-between items-center">
+          <div className="flex-shrink-0">
+            <Link href="/" className="text-2xl font-bold text-primary">
               GlucoseTracker
             </Link>
           </div>
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'text-sm font-medium text-foreground/60 hover:text-primary transition-colors',
+                  pathname === link.href && 'text-primary'
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
           <div className="flex items-center space-x-4">
-            {status === 'loading' && <p>Loading...</p>}
-
             {status === 'unauthenticated' && (
-              <>
-                <Link
-                  href="/about"
-                  className="text-gray-700 hover:text-indigo-600"
-                >
-                  About
-                </Link>
-                <Link
-                  href="/blog"
-                  className="text-gray-700 hover:text-indigo-600"
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                >
-                  Login
-                </Link>
-              </>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Login</Button>
+              </Link>
             )}
-
+             {status === 'unauthenticated' && (
+               <Link href="/register">
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-accent">
+                  Daftar
+                </Button>
+              </Link>
+            )}
             {status === 'authenticated' && (
               <>
-                <span className="text-sm text-gray-700">
-                  Hi, {session.user?.name || session.user?.email}
-                </span>
-                <Link
-                  href="/tracker"
-                  className="text-gray-700 hover:text-indigo-600"
-                >
-                  Tracker
+                <Link href="/tracker">
+                  <Button size="sm" variant="ghost">Dashboard</Button>
                 </Link>
                 <LogoutButton />
               </>
             )}
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }
