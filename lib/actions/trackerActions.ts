@@ -1,3 +1,4 @@
+// lib/actions/trackerActions.ts
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
@@ -5,16 +6,18 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
-import { getBloodSugarStatus } from '@/lib/utils'; // <-- INI PERBAIKANNYA
+import { getBloodSugarStatus } from '@/lib/utils';
+import { z } from 'zod';
 
-// Tipe data untuk item makanan dari Firestore
+// Tipe data untuk item makanan, sekarang dengan quantity
 export interface FoodItem {
   id: string;
   name: string;
   sugar_g: number;
+  quantity: number; 
 }
 
-// Tipe data untuk entri glukosa yang disimpan di Supabase
+// Tipe data untuk entri glukosa
 export interface GlucoseEntry {
   id: string;
   user_id: string;
@@ -32,12 +35,29 @@ export type FormState = {
   error?: string;
 };
 
-/**
- * Mencari makanan dari koleksi 'foods' di Firestore.
- */
+// Skema validasi untuk entri baru
+const AddEntrySchema = z.object({
+  foods_consumed: z.string().min(3, { message: "Anda harus memilih minimal satu makanan." }),
+  user_age: z.coerce.number().min(1, { message: "Usia harus diisi." }),
+  condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
+  entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
+  entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
+});
+
+// Skema validasi untuk update entri
+const UpdateEntrySchema = z.object({
+    id: z.string(),
+    food_name: z.string().min(1, { message: "Nama makanan tidak boleh kosong." }),
+    sugar_g: z.coerce.number().min(0, { message: "Gula harus angka positif." }),
+    age_at_input: z.coerce.number().min(1, { message: "Usia harus diisi." }),
+    condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
+    entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
+    entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
+});
+
+
 export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
   if (!searchQuery || searchQuery.length < 2) return [];
-
   const lowerCaseQuery = searchQuery.toLowerCase();
   
   try {
@@ -56,10 +76,10 @@ export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
       foods.push({
         id: doc.id,
         name: data.name,
-        sugar_g: data.sugar_g
+        sugar_g: data.sugar_g,
+        quantity: 1
       });
     });
-
     return foods;
   } catch (error) {
     console.error("Error searching foods in Firestore:", error);
@@ -67,68 +87,55 @@ export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
   }
 }
 
-/**
- * Menambahkan entri makanan ke tabel 'glucose_entries' di Supabase.
- */
-export async function addMealEntry(
-  prevState: FormState | null,
-  formData: FormData
-): Promise<FormState> {
+// Fungsi helper untuk memformat nama makanan dengan kuantitas
+const formatFoodName = (foods: FoodItem[]): string => {
+  return foods.map(food => 
+    food.quantity > 1 ? `${food.name} (${food.quantity}x)` : food.name
+  ).join(', ');
+};
+
+export async function addMealEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
-  console.log('Session:', session); // Cek session
-  console.log('User ID:', session?.user?.id); // Cek user ID
 
   if (!user) return { error: 'Unauthorized. Silakan login terlebih dahulu.' };
 
-  const foodsJson = formData.get('foods_consumed') as string;
-  const userAge = formData.get('user_age') as string;
-  const condition = formData.get('condition') as string;
-  const entryTime = new Date();
+  const validatedFields = AddEntrySchema.safeParse(Object.fromEntries(formData.entries()));
 
-  if (!foodsJson || foodsJson === '[]') {
-    return { error: 'Anda harus memilih minimal satu makanan.' };
+  if (!validatedFields.success) {
+      return { error: "Semua field wajib diisi dengan benar." };
   }
-  if (!userAge) {
-    return { error: 'Usia wajib diisi.' };
-  }
-  if (!condition) {
-    return { error: 'Kondisi wajib dipilih.' };
-  }
+  
+  const { foods_consumed, user_age, condition, entry_date, entry_time } = validatedFields.data;
 
   let foods: FoodItem[];
   try {
-    foods = JSON.parse(foodsJson);
+    foods = JSON.parse(foods_consumed);
   } catch (e) {
     return { error: 'Data makanan tidak valid.' };
   }
-  
-  const age = parseInt(userAge, 10);
-  if (isNaN(age)) {
-    return { error: 'Usia harus berupa angka.' };
+
+  const combinedDateTime = new Date(`${entry_date}T${entry_time}`);
+  if (isNaN(combinedDateTime.getTime())) {
+    return { error: 'Format tanggal atau waktu tidak valid.' };
   }
 
-  // Membuat array entri untuk setiap makanan yang dipilih
-  const entriesToInsert = foods.map(food => {
-    user_id: session.user.id
-    // Menghitung total gula darah (simulasi, karena kita tidak punya data gula darah asli)
-    // Di sini kita asumsikan `sugar_g` adalah representasi kadar gula darah untuk perhitungan status
-    const glucoseLevel = food.sugar_g; 
-    const status = getBloodSugarStatus(age, condition, glucoseLevel);
-    
-    return {
-      user_id: user.id,
-      created_at: entryTime.toISOString(),
-      food_name: food.name,
-      sugar_g: food.sugar_g,
-      age_at_input: age,
-      condition: condition,
-      status: status
-    };
-  });
+  const combinedFoodName = formatFoodName(foods);
+  const totalSugar = foods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);
+  const status = getBloodSugarStatus(user_age, condition, totalSugar);
+  
+  const entryToInsert = {
+    user_id: user.id,
+    created_at: combinedDateTime.toISOString(),
+    food_name: combinedFoodName,
+    sugar_g: totalSugar,
+    age_at_input: user_age,
+    condition,
+    status
+  };
 
-  const { error } = await supabase.from('glucose_entries').insert(entriesToInsert);
+  const { error } = await supabase.from('glucose_entries').insert([entryToInsert]);
 
   if (error) {
     console.error("Error adding meal entry:", error);
@@ -139,9 +146,6 @@ export async function addMealEntry(
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
-/**
- * Mengambil semua entri glukosa milik pengguna dari Supabase.
- */
 export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
   const supabase = await createClient();
   const session = await auth();
@@ -162,9 +166,50 @@ export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
   return data as GlucoseEntry[];
 }
 
-/**
- * Menghapus satu entri glukosa dari Supabase.
- */
+export async function updateTrackerEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
+    const supabase = await createClient();
+    const session = await auth();
+    const user = session?.user;
+  
+    if (!user) return { error: 'Unauthorized' };
+  
+    const validatedFields = UpdateEntrySchema.safeParse(Object.fromEntries(formData.entries()));
+  
+    if (!validatedFields.success) {
+      return { error: "Semua field wajib diisi dengan benar." };
+    }
+    
+    const { id, food_name, sugar_g, age_at_input, condition, entry_date, entry_time } = validatedFields.data;
+    
+    const combinedDateTime = new Date(`${entry_date}T${entry_time}`);
+    if (isNaN(combinedDateTime.getTime())) {
+      return { error: 'Format tanggal atau waktu tidak valid.' };
+    }
+  
+    const status = getBloodSugarStatus(age_at_input, condition, sugar_g);
+  
+    const { error } = await supabase
+      .from('glucose_entries')
+      .update({ 
+        food_name, 
+        sugar_g, 
+        age_at_input,
+        condition,
+        status,
+        created_at: combinedDateTime.toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', user.id);
+  
+    if (error) {
+      console.error("Error updating entry:", error);
+      return { error: 'Gagal memperbarui data.' };
+    }
+  
+    revalidatePath('/tracker');
+    return { success: 'Data berhasil diperbarui!' };
+  }
+
 export async function deleteTrackerEntry(id: string): Promise<FormState> {
   const supabase = await createClient();
   const session = await auth();
@@ -186,11 +231,3 @@ export async function deleteTrackerEntry(id: string): Promise<FormState> {
   revalidatePath('/tracker');
   return { success: 'Data berhasil dihapus.' };
 }
-
-// // Test function - tambahkan ini sementara
-// export async function testSupabaseAuth() {
-//   const supabase = await createClient();
-//   const { data: { user } } = await supabase.auth.getUser();
-//   console.log('Supabase user:', user);
-//   return user;
-// }

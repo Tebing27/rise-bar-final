@@ -2,11 +2,11 @@
 import NextAuth from "next-auth";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import Credentials from "next-auth/providers/credentials";
-import { supabaseAdmin } from '@/lib/supabase-admin'; // Gunakan admin client
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import bcrypt from "bcryptjs";
+import { SignJWT } from 'jose'; // <-- 1. Import from 'jose'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // PERBAIKAN 1: Tambahkan session strategy secara eksplisit
   session: { strategy: "jwt" },
   
   adapter: SupabaseAdapter({
@@ -25,9 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .eq("email", credentials.email as string)
           .single();
 
-        if (error || !user) return null;
-
-        if (!user.role) return null; 
+        if (error || !user || !user.role) return null;
 
         const passwordsMatch = await bcrypt.compare(
           credentials.password as string,
@@ -48,21 +46,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    // PERBAIKAN 2: Pastikan callback jwt dan session sudah benar
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id; // Gunakan 'sub' untuk user id
+        token.sub = user.id;
         token.role = user.role;
+        token.email = user.email;
       }
       return token;
     },
+    // V V V V V  THE FINAL FIX IS HERE V V V V V
     async session({ session, token }) {
+      const signingSecret = process.env.SUPABASE_JWT_SECRET;
+      
       if (session.user) {
         session.user.id = token.sub as string;
         session.user.role = token.role;
       }
+
+      if (signingSecret && token.sub) {
+        const payload = {
+          aud: "authenticated",
+          exp: Math.floor(new Date(session.expires).getTime() / 1000),
+          sub: token.sub,
+          email: token.email,
+          role: "authenticated",
+        };
+        
+        // 2. Sign the token using 'jose'
+        const encodedSecret = new TextEncoder().encode(signingSecret);
+        session.supabaseAccessToken = await new SignJWT(payload)
+          .setProtectedHeader({ alg: 'HS256' })
+          .sign(encodedSecret);
+      }
+      
       return session;
     },
+    // ^ ^ ^ ^ ^ THE FINAL FIX IS HERE ^ ^ ^ ^ ^
   },
   pages: {
     signIn: "/login",

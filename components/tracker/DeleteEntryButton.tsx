@@ -2,8 +2,9 @@
 
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
-import { deleteTrackerEntry } from '@/lib/actions/solutionActions'; // Change to solutionActions
-import { toast } from 'sonner';
+// FIX: Change this import path
+import { deleteTrackerEntry } from '@/lib/actions/trackerActions'; 
+import { toast } from 'sonner';;
 
 function SubmitButton() {
   const { pending } = useFormStatus();

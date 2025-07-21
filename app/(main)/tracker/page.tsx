@@ -1,9 +1,13 @@
+// app/(main)/tracker/page.tsx
+import React from 'react';
 import { getTrackerEntries, GlucoseEntry } from '@/lib/actions/trackerActions';
 import TrackerForm from '@/components/tracker/TrackerForm';
 import { DeleteEntryButton } from '@/components/tracker/DeleteEntryButton';
-// import ExportButton from '@/components/tracker/ExportDataButton';
+import EditEntryDialog from '@/components/tracker/EditEntryDialog';
 import TrackerChart from '@/components/tracker/TrackerChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Toaster } from '@/components/ui/sonner';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,87 +15,95 @@ export default async function TrackerPage() {
   const entries: GlucoseEntry[] = await getTrackerEntries();
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Kolom Kiri: Form Input */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Catat Konsumsi Makanan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TrackerForm />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Kolom Kanan: Chart dan Riwayat */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Grafik Gula Darah (Simulasi)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {entries && entries.length > 0 ? (
-                <TrackerChart data={entries} />
-              ) : (
-                <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg">
-                  <p className="text-gray-500">Data belum tersedia untuk ditampilkan di grafik.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+    <>
+      <Toaster position="top-center" richColors />
+      <div className="container mx-auto py-10 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Riwayat */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Riwayat Konsumsi</CardTitle>
-              {/* <ExportButton entries={entries} /> */}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader><CardTitle>Catat Konsumsi Makanan</CardTitle></CardHeader>
+              <CardContent><TrackerForm /></CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-2 space-y-8">
+            <Card>
+              <CardHeader><CardTitle>Grafik Gula Darah (Simulasi)</CardTitle></CardHeader>
+              <CardContent>
                 {entries && entries.length > 0 ? (
-                  entries.map((entry) => (
-                    <div key={entry.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-800">{entry.food_name}</span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(entry.created_at).toLocaleString('id-ID', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                           {' - '}
-                          <span className="italic">{entry.condition}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-medium text-gray-700">{entry.sugar_g}g</span>
-                        <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                          entry.status === 'Tinggi' 
-                            ? 'bg-red-100 text-red-800' 
-                            : entry.status === 'Normal' 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {entry.status}
-                        </span>
-                        <DeleteEntryButton id={entry.id} />
-                      </div>
-                    </div>
-                  ))
+                  <TrackerChart data={entries} />
                 ) : (
-                  <p className="text-gray-500 text-center py-8">Belum ada riwayat konsumsi.</p>
+                  <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg">
+                    <p className="text-gray-500">Data belum tersedia untuk ditampilkan di grafik.</p>
+                  </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader><CardTitle>Riwayat Konsumsi</CardTitle></CardHeader>
+              <CardContent>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {/* --- HEADER TABEL DIPERBARUI --- */}
+                        <TableHead className="w-[15%]">Tanggal</TableHead>
+                        <TableHead className="w-[10%]">Waktu</TableHead> {/* <-- KOLOM WAKTU DITAMBAHKAN */}
+                        <TableHead className="w-[25%]">Makanan</TableHead>
+                        <TableHead>Gula Darah</TableHead>
+                        <TableHead>Usia</TableHead>
+                        <TableHead>Kondisi</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {entries && entries.length > 0 ? (
+                        entries.map((entry) => (
+                          <TableRow key={entry.id}>
+                            {/* --- ISI TABEL DIPERBARUI --- */}
+                            <TableCell className="font-medium">
+                                {new Date(entry.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                            </TableCell>
+                            <TableCell>{new Date(entry.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}</TableCell> {/* <-- DATA WAKTU DI SINI */}
+                            <TableCell className="text-sm text-gray-600 break-words">{entry.food_name}</TableCell>
+                            <TableCell>{entry.sugar_g.toFixed(0)} mg/dL</TableCell>
+                            <TableCell>{entry.age_at_input} tahun</TableCell>
+                            <TableCell>{entry.condition}</TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                entry.status === 'Tinggi' ? 'bg-red-100 text-red-800' : 
+                                entry.status === 'Normal' ? 'bg-green-100 text-green-800' : 
+                                'bg-blue-100 text-blue-800'
+                              }`}>
+                                {entry.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <EditEntryDialog entry={entry} />
+                                <DeleteEntryButton id={entry.id} />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-gray-500 py-8">
+                            Belum ada riwayat konsumsi.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
