@@ -8,6 +8,7 @@ declare module 'next-auth' {
    * Mendefinisikan ulang tipe Session untuk menambahkan 'role'
    */
   interface Session {
+    supabaseAccessToken?: string; // <-- TAMBAHKAN INI
     user: {
       role?: string | null;
     } & DefaultSession['user'];
@@ -27,5 +28,6 @@ declare module 'next-auth/jwt' {
    */
   interface JWT {
     role?: string | null;
+    supabaseAccessToken?: string; // <-- TAMBAHKAN INI JUGA
   }
 }

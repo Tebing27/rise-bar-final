@@ -53,18 +53,19 @@ export default function TrackerForm() {
   }, [query]);
 
   // Menambahkan makanan ke "keranjang"
-  const addFoodToSelection = (food: FoodItem) => {
-    // Hindari duplikat
-    if (!selectedFoods.find(f => f._id === food._id)) {
-        setSelectedFoods([...selectedFoods, food]);
-    }
-    setQuery('');
-    setSearchResults([]);
-  };
+const addFoodToSelection = (food: FoodItem) => {
+  // Hindari duplikat
+  // Ganti f._id menjadi f.id
+  if (!selectedFoods.find(f => f.id === food.id)) { 
+      setSelectedFoods([...selectedFoods, food]);
+  }
+  setQuery('');
+  setSearchResults([]);
+};
 
   // Menghapus makanan dari "keranjang"
   const removeFoodFromSelection = (foodId: string) => {
-    setSelectedFoods(selectedFoods.filter(food => food._id !== foodId));
+    setSelectedFoods(selectedFoods.filter(food => food.id !== foodId));
   };
 
   return (
@@ -96,7 +97,7 @@ export default function TrackerForm() {
             <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {searchResults.map((food) => (
                 <li
-                  key={food._id}
+                  key={food.id}
                   onClick={() => addFoodToSelection(food)}
                   className="p-3 hover:bg-gray-100 cursor-pointer text-sm"
                 >
@@ -113,11 +114,11 @@ export default function TrackerForm() {
             {selectedFoods.length > 0 ? (
                 <div className="mt-2 space-y-2 p-3 border rounded-md bg-gray-50">
                     {selectedFoods.map(food => (
-                        <div key={food._id} className="flex justify-between items-center text-sm">
+                        <div key={food.id} className="flex justify-between items-center text-sm">
                             <span>{food.name}</span>
                             <div className="flex items-center gap-2">
                                 <span className="text-gray-500">{food.sugar_g}g</span>
-                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFoodFromSelection(food._id)}>
+                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFoodFromSelection(food.id)}>
                                     &times;
                                 </Button>
                             </div>

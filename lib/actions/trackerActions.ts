@@ -2,72 +2,99 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import clientPromise from '@/lib/mongodb';
-import { auth } from '@/lib/auth'; // Pastikan path ini benar
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/firebase';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { getBloodSugarStatus } from '@/lib/utils'; // <-- INI PERBAIKANNYA
 
-// Tipe data (tidak ada perubahan di sini)
+// Tipe data untuk item makanan dari Firestore
 export interface FoodItem {
-  _id: string;
+  id: string;
   name: string;
-  serving_size: string;
   sugar_g: number;
 }
 
+// Tipe data untuk entri glukosa yang disimpan di Supabase
 export interface GlucoseEntry {
   id: string;
   user_id: string;
   created_at: string;
-  foods_consumed: FoodItem[];
-  total_sugar_g: number;
-  user_age?: number;
-  condition?: string;
-  // Tambahkan properti ini agar sesuai dengan data dari page.tsx
   food_name: string;
-  serving_size?: string;
-  sugar_g?: number;
-  notes?: string;
+  sugar_g: number;
+  age_at_input: number | null;
+  condition: string;
+  status: 'Tinggi' | 'Normal' | 'Rendah';
 }
 
+// Tipe data untuk state form
 export type FormState = {
   success?: string;
   error?: string;
 };
 
-// Fungsi searchFoods (tidak ada perubahan)
-export async function searchFoods(query: string): Promise<FoodItem[]> {
-  if (!query) return [];
+/**
+ * Mencari makanan dari koleksi 'foods' di Firestore.
+ */
+export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
+  if (!searchQuery || searchQuery.length < 2) return [];
+
+  const lowerCaseQuery = searchQuery.toLowerCase();
+  
   try {
-    const mongoClient = await clientPromise;
-    const db = mongoClient.db('RiseBar');
-    const foods = await db
-      .collection('foods')
-      .find({ name: { $regex: query, $options: 'i' } })
-      .limit(10)
-      .toArray();
-    return JSON.parse(JSON.stringify(foods));
+    const foodsRef = collection(db, 'foods');
+    const q = query(
+      foodsRef,
+      where('name_lowercase', '>=', lowerCaseQuery),
+      where('name_lowercase', '<=', lowerCaseQuery + '\uf8ff'),
+      limit(10)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const foods: FoodItem[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      foods.push({
+        id: doc.id,
+        name: data.name,
+        sugar_g: data.sugar_g
+      });
+    });
+
+    return foods;
   } catch (error) {
-    console.error("Error searching foods:", error);
+    console.error("Error searching foods in Firestore:", error);
     return [];
   }
 }
 
-// Fungsi addMealEntry (sudah benar, tidak ada perubahan)
+/**
+ * Menambahkan entri makanan ke tabel 'glucose_entries' di Supabase.
+ */
 export async function addMealEntry(
   prevState: FormState | null,
   formData: FormData
 ): Promise<FormState> {
-  const supabase = await createClient(); // `await` sudah ada di sini
+  const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
+  console.log('Session:', session); // Cek session
+  console.log('User ID:', session?.user?.id); // Cek user ID
 
   if (!user) return { error: 'Unauthorized. Silakan login terlebih dahulu.' };
 
   const foodsJson = formData.get('foods_consumed') as string;
   const userAge = formData.get('user_age') as string;
   const condition = formData.get('condition') as string;
+  const entryTime = new Date();
 
   if (!foodsJson || foodsJson === '[]') {
     return { error: 'Anda harus memilih minimal satu makanan.' };
+  }
+  if (!userAge) {
+    return { error: 'Usia wajib diisi.' };
+  }
+  if (!condition) {
+    return { error: 'Kondisi wajib dipilih.' };
   }
 
   let foods: FoodItem[];
@@ -76,18 +103,32 @@ export async function addMealEntry(
   } catch (e) {
     return { error: 'Data makanan tidak valid.' };
   }
+  
+  const age = parseInt(userAge, 10);
+  if (isNaN(age)) {
+    return { error: 'Usia harus berupa angka.' };
+  }
 
-  const totalSugar = foods.reduce((acc, food) => acc + food.sugar_g, 0);
+  // Membuat array entri untuk setiap makanan yang dipilih
+  const entriesToInsert = foods.map(food => {
+    user_id: session.user.id
+    // Menghitung total gula darah (simulasi, karena kita tidak punya data gula darah asli)
+    // Di sini kita asumsikan `sugar_g` adalah representasi kadar gula darah untuk perhitungan status
+    const glucoseLevel = food.sugar_g; 
+    const status = getBloodSugarStatus(age, condition, glucoseLevel);
+    
+    return {
+      user_id: user.id,
+      created_at: entryTime.toISOString(),
+      food_name: food.name,
+      sugar_g: food.sugar_g,
+      age_at_input: age,
+      condition: condition,
+      status: status
+    };
+  });
 
-  const newEntry = {
-    user_id: user.id,
-    foods_consumed: foods,
-    total_sugar_g: totalSugar,
-    user_age: userAge ? parseInt(userAge) : null,
-    condition: condition,
-  };
-
-  const { error } = await supabase.from('glucose_entries').insert([newEntry]);
+  const { error } = await supabase.from('glucose_entries').insert(entriesToInsert);
 
   if (error) {
     console.error("Error adding meal entry:", error);
@@ -98,18 +139,20 @@ export async function addMealEntry(
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
-// Mengambil semua entri (dengan perbaikan)
+/**
+ * Mengambil semua entri glukosa milik pengguna dari Supabase.
+ */
 export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
-  const supabase = await createClient(); // <-- PERBAIKAN 1: Tambahkan 'await'
-  const session = await auth(); // <-- PERBAIKAN 2: Gunakan sesi NextAuth
+  const supabase = await createClient();
+  const session = await auth();
   const user = session?.user;
 
-  if (!user) return []; // Jika tidak ada user, kembalikan array kosong
+  if (!user) return [];
 
   const { data, error } = await supabase
     .from('glucose_entries')
     .select('*')
-    .eq('user_id', user.id) // <-- PERBAIKAN 3: Ambil data milik user yang login saja
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
     
   if (error) {
@@ -119,20 +162,21 @@ export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
   return data as GlucoseEntry[];
 }
 
-// Menghapus entri (dengan perbaikan)
+/**
+ * Menghapus satu entri glukosa dari Supabase.
+ */
 export async function deleteTrackerEntry(id: string): Promise<FormState> {
-  const supabase = await createClient(); // <-- PERBAIKAN 1: Tambahkan 'await'
-  const session = await auth(); // <-- PERBAIKAN 2: Gunakan sesi NextAuth
+  const supabase = await createClient();
+  const session = await auth();
   const user = session?.user;
 
   if (!user) return { error: 'Unauthorized' };
 
-  // Validasi tambahan: pastikan user hanya bisa menghapus datanya sendiri
   const { error } = await supabase
     .from('glucose_entries')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id); // <-- PERBAIKAN 3: Tambahkan cek user_id
+    .eq('user_id', user.id);
 
   if (error) {
     console.error("Error deleting entry:", error);
@@ -142,3 +186,11 @@ export async function deleteTrackerEntry(id: string): Promise<FormState> {
   revalidatePath('/tracker');
   return { success: 'Data berhasil dihapus.' };
 }
+
+// // Test function - tambahkan ini sementara
+// export async function testSupabaseAuth() {
+//   const supabase = await createClient();
+//   const { data: { user } } = await supabase.auth.getUser();
+//   console.log('Supabase user:', user);
+//   return user;
+// }
