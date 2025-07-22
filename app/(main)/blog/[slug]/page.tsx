@@ -4,6 +4,9 @@ import Image from 'next/image';
 import { auth } from '@/lib/auth';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { calculateReadingTime } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Clock, UserCircle } from 'lucide-react';
 
 // ✍️ FUNGSI UNTUK METADATA YANG LEBIH LENGKAP
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -110,23 +113,21 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const session = await auth();
 
-  // Ambil data post (termasuk tags)
   const { data: post } = await db
     .from('posts')
     .select(`*, tags(name)`)
     .eq('slug', slug)
     .single();
 
-  // Jika post tidak ada, tampilkan halaman 404
   if (!post) {
     notFound();
   }
 
-  // Increment view count jika bukan admin
   if (session?.user?.role !== 'admin') {
     await db.rpc('increment_view_count', { post_id: post.id });
   }
 
+  const readingTime = calculateReadingTime(post.content || '');
   // Structured data untuk Google (JSON-LD)
   const structuredData = {
     "@context": "https://schema.org",
@@ -165,37 +166,62 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         }}
       />
       
-      <article className="mx-auto max-w-3xl py-12 px-4 prose lg:prose-xl">
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-        
-        <div className="text-sm text-gray-600 mb-6">
-          Oleh: {post.author_name || 'Anonim'}
-          •
-          {new Date(post.published_at).toLocaleDateString('id-ID')}
-          •
-          Dilihat: {post.view_count + 1} kali
-        </div>
-        
-        {post.image_url && (
-          <div className="mb-6">
-            <Image
-              src={post.image_url}
-              alt={post.title}
-              width={800}
-              height={400}
-              className="w-full h-64 object-cover rounded-lg"
-              priority // Untuk loading gambar yang lebih cepat
-            />
+      <div className="bg-background py-12 sm:py-16">
+        <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          {post.image_url && (
+            <div className="relative mb-8 w-full aspect-video rounded-xl overflow-hidden">
+              <Image
+                src={post.image_url}
+                alt={post.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            {post.title}
+          </h1>
+
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <UserCircle className="h-4 w-4" />
+              <span>Oleh {post.author_name || 'Tim GlucoseTracker'}</span>
+            </div>
+            <time dateTime={post.published_at}>
+              {new Date(post.published_at).toLocaleDateString('id-ID', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              })}
+            </time>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              <span>{post.view_count + 1} Dilihat</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{readingTime} menit baca</span>
+            </div>
           </div>
-        )}
-        
-        <div 
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+
+          <div
+            className="prose prose-lg max-w-none mt-8"
+            dangerouslySetInnerHTML={{ __html: post.content || '' }}
+          />
+
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-10 pt-6 border-t">
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag: { name: string }) => (
+                  <Badge key={tag.name} variant="secondary">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </article>
       </div>
-      </article>
     </>
   );
 }

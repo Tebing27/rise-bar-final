@@ -39,3 +39,12 @@ export function getBloodSugarStatus(age: number, condition: string, glucoseLevel
     // Jika tidak ada kondisi di atas yang terpenuhi, statusnya adalah Normal
     return 'Normal';
 }
+
+export function calculateReadingTime(content: string): number {
+  if (!content) return 0;
+  const wordsPerMinute = 200; // Average reading speed
+  const text = content.replace(/<[^>]+>/g, ''); // Remove HTML tags
+  const wordCount = text.split(/\s+/).length;
+  const readingTime = Math.ceil(wordCount / wordsPerMinute);
+  return readingTime;
+}

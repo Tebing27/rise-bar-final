@@ -1,6 +1,10 @@
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image'; // Impor Image
+import { getPosts } from '@/lib/actions/blogActions';
+import { SearchAndFilter } from '@/components/blog/SearchAndFilter';
+import { PostCard } from '@/components/shared/PostCard'; // Assuming BlogCard is in shared
+import { Pagination } from '@/components/admin/Pagination'; // We can reuse the admin pagination
 
 interface Tag {
   name: string;
@@ -77,20 +81,53 @@ async function getPublishedPosts() {
   return data;
 }
 
-export default async function BlogListPage() {
-  const posts = await getPublishedPosts();
+export default async function BlogListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  // This is the correct way to access searchParams in a Server Component
+  const resolvedSearchParams = await searchParams;
+  const { search, sortBy, page } = resolvedSearchParams;
+
+  const { posts, totalPages } = await getPosts({
+    search,
+    sortBy,
+    page: page ? parseInt(page) : 1,
+  });
 
   return (
-    <div className="mx-auto max-w-4xl py-12 px-4">
-      <h1 className="text-4xl font-bold text-center mb-10">Artikel Blog</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {posts.length > 0 ? (
-          posts.map((post) => <BlogCard key={post.id} post={post} />)
-        ) : (
-          <p className="text-center md:col-span-2 text-gray-500">
-            Belum ada artikel yang dipublikasikan.
-          </p>
-        )}
+    <div className="bg-background">
+      <div className="mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                Wawasan Kesehatan
+            </h1>
+            <p className="mt-4 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
+                Temukan artikel, tips, dan panduan terbaru dari para ahli untuk membantu Anda mengelola kesehatan glukosa dengan lebih baik.
+            </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+            <SearchAndFilter />
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {posts && posts.length > 0 ? (
+            posts.map((post: any) => <PostCard key={post.id} post={post} />)
+          ) : (
+            <div className="md:col-span-2 lg:col-span-3 text-center py-16">
+              <h3 className="text-xl font-semibold">Artikel Tidak Ditemukan</h3>
+              <p className="text-muted-foreground mt-2">
+                Coba gunakan kata kunci lain atau sesuaikan filter Anda.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-16 flex justify-center">
+          {totalPages > 1 && <Pagination totalPages={totalPages} />}
+        </div>
       </div>
     </div>
   );

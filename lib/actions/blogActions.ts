@@ -1,10 +1,29 @@
+// lib/actions/blogActions.ts
 'use server';
+
+import { db } from '@/lib/supabase';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { FormState } from './trackerActions';
+// We will define a new type instead of importing from trackerActions
+// import type { FormState } from './trackerActions'; 
 import { v2 as cloudinary } from 'cloudinary';
+
+// Define a new, correct FormState type for the blog
+export type BlogFormState = {
+  success: boolean;
+  message?: string;
+  errors?: {
+    [key: string]: string[] | undefined;
+  };
+};
+
+const searchParamsSchema = z.object({
+  search: z.string().optional(),
+  sortBy: z.enum(['newest', 'popular']).default('newest'),
+  page: z.coerce.number().min(1).default(1),
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,7 +34,6 @@ cloudinary.config({
 const PostSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(5, { message: 'Judul minimal 5 karakter.' }),
-  // Tambahkan author_name ke skema
   author_name: z.string().min(3, { message: 'Nama penulis minimal 3 karakter.' }),
   slug: z.string().min(5, { message: 'Slug minimal 5 karakter.' }),
   content: z.string().optional(),
@@ -49,10 +67,69 @@ async function handleTags(post_id: string, tagsString?: string | null) {
   await supabaseAdmin.from('post_tags').insert(allTagIds.map(tag_id => ({ post_id, tag_id })));
 }
 
+export async function getPosts(params: {
+  search?: string;
+  sortBy?: string;
+  page?: number;
+}) {
+  const validatedParams = searchParamsSchema.safeParse(params);
+
+  if (!validatedParams.success) {
+    throw new Error('Invalid search parameters.');
+  }
+
+  const { search, sortBy, page } = validatedParams.data;
+  const postsPerPage = 5;
+  const from = (page - 1) * postsPerPage;
+  const to = from + postsPerPage - 1;
+
+  let query = db
+    .from('posts')
+    .select(
+      `
+      *,
+      author:users ( name ),
+      tags ( name )
+    `,
+      { count: 'exact' } // Important for pagination
+    )
+    .eq('is_published', true);
+
+  // 1. Search functionality
+  if (search) {
+    query = query.textSearch('title', search, {
+      type: 'plain',
+      config: 'english',
+    });
+  }
+
+  // 2. Filtering and Sorting
+  if (sortBy === 'popular') {
+    query = query.order('view_count', { ascending: false });
+  } else { // 'else if' menjadi 'else'
+    // Default to 'newest'
+    query = query.order('published_at', { ascending: false });
+  }
+
+  // 3. Pagination
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error('Error fetching posts:', error);
+    return { posts: [], totalPages: 0 };
+  }
+
+  const totalPages = Math.ceil((count || 0) / postsPerPage);
+
+  return { posts: data, totalPages };
+}
+
 export async function upsertPost(
-  prevState: FormState,
+  prevState: BlogFormState,
   formData: FormData
-): Promise<FormState> {
+): Promise<BlogFormState> {
 
   const rawData = {
     id: formData.get('id') || undefined,
@@ -73,7 +150,6 @@ export async function upsertPost(
 
   const { id, tags, ...postData } = validatedFields.data;
 
-  // Perbaikan di sini: Pastikan dataToUpsert berisi semua data dari postData
   const dataToUpsert = {
       ...postData,
       published_at: postData.is_published && !id ? new Date().toISOString() : undefined,
@@ -82,7 +158,7 @@ export async function upsertPost(
   try {
     const { data: upsertedPost, error } = await supabaseAdmin
       .from('posts')
-      .upsert({ id, ...dataToUpsert }) // Gunakan dataToUpsert
+      .upsert({ id, ...dataToUpsert })
       .select('id')
       .single();
       
@@ -120,10 +196,8 @@ export async function deletePost(postId: string) {
     }
   
     try {
-      // Hapus relasi di post_tags terlebih dahulu (jika ada)
       await supabaseAdmin.from('post_tags').delete().eq('post_id', postId);
   
-      // Hapus gambar dari Cloudinary jika ada (opsional tapi direkomendasikan)
       const { data: post } = await supabaseAdmin.from('posts').select('image_url').eq('id', postId).single();
       if (post?.image_url) {
         const publicId = post.image_url.split('/').pop()?.split('.')[0];
@@ -132,14 +206,12 @@ export async function deletePost(postId: string) {
         }
       }
       
-      // Hapus post dari database
       const { error } = await supabaseAdmin.from('posts').delete().eq('id', postId);
   
       if (error) {
         throw new Error(error.message);
       }
   
-      // Revalidasi path agar daftar artikel ter-update
       revalidatePath('/admin/blogs');
       revalidatePath('/blog');
       
@@ -149,4 +221,4 @@ export async function deletePost(postId: string) {
       const error = e as Error;
       return { success: false, message: error.message };
     }
-  }
+}

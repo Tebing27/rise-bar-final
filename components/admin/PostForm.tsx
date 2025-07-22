@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react'; // <-- 1. Impor useSession
 import type { FormState } from '@/lib/actions/trackerActions';
+import type { BlogFormState } from '@/lib/actions/blogActions';
 import { upsertPost } from '@/lib/actions/blogActions';
 import { PostFormButton } from './PostFormButton';
 import Image from 'next/image';
@@ -25,7 +26,7 @@ interface Post {
 // Hapus 'authors' dari props karena tidak lagi digunakan
 export function PostForm({ post, tags }: { post?: Post | null; tags?: string; }) {
   const { data: session } = useSession(); // <-- 2. Dapatkan data sesi
-  const initialState: FormState = { success: false };
+  const initialState: BlogFormState = { success: false };
   const [state, formAction] = useActionState(upsertPost, initialState);
   const [imageUrl, setImageUrl] = useState(post?.image_url || '');
 
@@ -96,7 +97,7 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
           type="text" 
           name="tags" 
           id="tags" 
-          defaultValue={tags}
+          defaultValue={tags} // This correctly uses the tagsString
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
           placeholder="contoh: diet, sehat, tips gula"
         />
@@ -114,7 +115,7 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
       
       <div className="flex items-center">
         <input id="is_popular" name="is_popular" type="checkbox" defaultChecked={post?.is_popular} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-        <label htmlFor="is_popular" className="ml-2 block text-sm text-gray-900">Tandai sebagai Artikel Populer</label>
+        <label htmlFor="is_popular" className="ml-2 block text-sm text-gray-900">Tampilkan di Halaman Utama</label>
       </div>
 
       <div className="flex justify-end">
