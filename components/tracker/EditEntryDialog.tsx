@@ -79,14 +79,17 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
       setSearchResults([]);
       return;
     }
-    const fetchFoods = async () => {
-      const results = await searchFoods(query);
-      setSearchResults(results);
-    };
-    const debounce = setTimeout(() => fetchFoods(), 300);
-    return () => clearTimeout(debounce);
-  }, [query]);
 
+    const debounceTimer = setTimeout(() => {
+        const fetchFoods = async () => {
+            const results = await searchFoods(query);
+            setSearchResults(results);
+        };
+        fetchFoods();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query]);
   useEffect(() => {
     if (hasModifiedFoods.current) {
       const newTotal = selectedFoods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);

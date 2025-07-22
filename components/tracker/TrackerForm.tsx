@@ -1,4 +1,3 @@
-// components/tracker/TrackerForm.tsx
 'use client';
 
 import { useState, useEffect, useActionState } from 'react';
@@ -39,18 +38,27 @@ export default function TrackerForm() {
     }
   }, [state]);
 
+  // --- PERBAIKAN DEBOUNCE DI SINI ---
   useEffect(() => {
+    // Jika query kosong atau terlalu pendek, jangan lakukan apa-apa
     if (query.length < 2) {
       setSearchResults([]);
       return;
     }
-    const fetchFoods = async () => {
-      const results = await searchFoods(query);
-      setSearchResults(results);
-    };
-    const debounce = setTimeout(() => fetchFoods(), 300);
-    return () => clearTimeout(debounce);
-  }, [query]);
+
+    // Atur timer untuk menunda pencarian
+    const debounceTimer = setTimeout(() => {
+      const fetchFoods = async () => {
+        const results = await searchFoods(query);
+        setSearchResults(results);
+      };
+      fetchFoods();
+    }, 300); // Tunggu 300ms setelah pengguna berhenti mengetik
+
+    // Bersihkan timer jika pengguna mengetik lagi sebelum 300ms
+    return () => clearTimeout(debounceTimer);
+  }, [query]); // Efek ini hanya berjalan saat 'query' berubah
+  // --- AKHIR PERBAIKAN ---
 
   const addFoodToSelection = (food: FoodItem) => {
     setSelectedFoods(prevFoods => {
