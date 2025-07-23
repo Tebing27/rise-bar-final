@@ -106,7 +106,8 @@ export default function TrackerForm() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ketik nama makanan..."
             autoComplete="off"
-          />
+            className="mt-1.5" // <-- TAMBAHKAN INI
+          />  
           {searchResults.length > 0 && (
             <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {searchResults.map((food) => (
@@ -149,23 +150,23 @@ export default function TrackerForm() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="entry_date">Tanggal</Label>
-            <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required />
+            <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required className="mt-1.5" /> {/* <-- TAMBAHKAN INI */}
           </div>
           <div>
             <Label htmlFor="entry_time">Waktu</Label>
-            <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
+            <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required className="mt-1.5" /> {/* <-- TAMBAHKAN INI */}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <Label htmlFor="user_age">Usia (tahun)</Label>
-                <Input id="user_age" name="user_age" type="number" placeholder="Masukkan usia Anda" required/>
+                <Input id="user_age" name="user_age" type="number" placeholder="Masukkan usia Anda" required className="mt-1.5"/> {/* <-- TAMBAHKAN INI */}
             </div>
             <div>
                 <Label htmlFor="condition">Kondisi</Label>
                 <Select name="condition" defaultValue="Setelah Makan">
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1.5"> {/* <-- TAMBAHKAN INI */}
                         <SelectValue placeholder="Pilih kondisi" />
                     </SelectTrigger>
                     <SelectContent>
