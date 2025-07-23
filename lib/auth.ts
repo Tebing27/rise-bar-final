@@ -4,7 +4,7 @@ import { SupabaseAdapter } from "@auth/supabase-adapter";
 import Credentials from "next-auth/providers/credentials";
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import bcrypt from "bcryptjs";
-import { SignJWT } from 'jose'; // <-- 1. Import from 'jose'
+import { SignJWT } from 'jose';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -38,7 +38,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email, 
               name: user.name, 
               image: user.image,
-              role: user.role.name
+              role: (user.role as any).name,
+              onboarding_complete: user.onboarding_complete
             };
         }
         return null;
@@ -47,21 +48,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // Saat login awal
       if (user) {
         token.sub = user.id;
         token.role = user.role;
         token.email = user.email;
+        token.onboarding_complete = user.onboarding_complete;
       }
+
+      // ✅ PERBAIKAN UTAMA:
+      // Setiap kali sesi diakses (misalnya oleh middleware),
+      // periksa kembali status onboarding terbaru dari database.
+      // Ini mencegah middleware menggunakan data sesi yang usang.
+      if (token.sub) {
+        try {
+          const { data } = await supabaseAdmin
+            .from('users')
+            .select('onboarding_complete')
+            .eq('id', token.sub)
+            .single();
+          
+          if (data) {
+            token.onboarding_complete = data.onboarding_complete;
+          }
+        } catch (error) {
+            console.error("Error refreshing onboarding status in JWT:", error);
+        }
+      }
+
       return token;
     },
-    // V V V V V  THE FINAL FIX IS HERE V V V V V
     async session({ session, token }) {
       const signingSecret = process.env.SUPABASE_JWT_SECRET;
       
       if (session.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role;
+        session.user.role = token.role as string;
       }
+      
+      session.onboarding_complete = token.onboarding_complete;
 
       if (signingSecret && token.sub) {
         const payload = {
@@ -72,7 +97,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: "authenticated",
         };
         
-        // 2. Sign the token using 'jose'
         const encodedSecret = new TextEncoder().encode(signingSecret);
         session.supabaseAccessToken = await new SignJWT(payload)
           .setProtectedHeader({ alg: 'HS256' })
@@ -81,7 +105,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       
       return session;
     },
-    // ^ ^ ^ ^ ^ THE FINAL FIX IS HERE ^ ^ ^ ^ ^
   },
   pages: {
     signIn: "/login",

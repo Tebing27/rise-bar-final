@@ -9,6 +9,7 @@ declare module 'next-auth' {
    */
   interface Session {
     supabaseAccessToken?: string; // <-- TAMBAHKAN INI
+    onboarding_complete?: boolean;
     user: {
       role?: string | null;
     } & DefaultSession['user'];
@@ -19,6 +20,7 @@ declare module 'next-auth' {
    */
   interface User extends DefaultUser {
     role?: string | null;
+    onboarding_complete?: boolean;
   }
 }
 
@@ -29,5 +31,6 @@ declare module 'next-auth/jwt' {
   interface JWT {
     role?: string | null;
     supabaseAccessToken?: string; // <-- TAMBAHKAN INI JUGA
+    onboarding_complete?: boolean;
   }
 }

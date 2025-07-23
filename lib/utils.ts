@@ -1,5 +1,4 @@
 // lib/utils.ts
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -7,13 +6,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// FUNGSI BARU: Menghitung usia dari string tanggal lahir (YYYY-MM-DD)
+export function calculateAge(dateOfBirth: string | Date): number {
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+
 /**
  * Menentukan status gula darah berdasarkan usia, kondisi, dan level glukosa.
- * Logika ini telah disesuaikan dengan gambar referensi yang diberikan.
- * @param age Usia pengguna dalam tahun.
- * @param condition Kondisi pengukuran: 'Sebelum Makan (Puasa)', 'Setelah Makan', atau 'Sewaktu'.
- * @param glucoseLevel Kadar glukosa dalam mg/dL.
- * @returns 'Tinggi', 'Normal', atau 'Rendah'.
  */
 export function getBloodSugarStatus(
   age: number,
@@ -27,13 +34,12 @@ export function getBloodSugarStatus(
       case 'Sebelum Makan (Puasa)':
         if (glucoseLevel < 70) return 'Rendah';
         if (glucoseLevel > 100) return 'Tinggi';
-        return 'Normal'; //
+        return 'Normal';
       case 'Setelah Makan':
-        if (glucoseLevel >= 140) return 'Tinggi'; //
+        if (glucoseLevel >= 140) return 'Tinggi';
         return 'Normal';
       case 'Sewaktu':
-        if (glucoseLevel >= 140) return 'Tinggi'; //
-        // Tidak ada standar 'Rendah' yang spesifik untuk sewaktu, jadi kita anggap normal
+        if (glucoseLevel >= 140) return 'Tinggi';
         return 'Normal'; 
       default:
         return 'Normal';
@@ -46,12 +52,12 @@ export function getBloodSugarStatus(
       case 'Sebelum Makan (Puasa)':
         if (glucoseLevel < 70) return 'Rendah';
         if (glucoseLevel > 99) return 'Tinggi';
-        return 'Normal'; //
+        return 'Normal';
       case 'Setelah Makan':
-        if (glucoseLevel >= 140) return 'Tinggi'; //
+        if (glucoseLevel >= 140) return 'Tinggi';
         return 'Normal';
       case 'Sewaktu':
-        if (glucoseLevel >= 140) return 'Tinggi'; //
+        if (glucoseLevel >= 140) return 'Tinggi';
         return 'Normal';
       default:
         return 'Normal';
@@ -64,26 +70,25 @@ export function getBloodSugarStatus(
       case 'Sebelum Makan (Puasa)':
         if (glucoseLevel < 80) return 'Rendah';
         if (glucoseLevel > 120) return 'Tinggi';
-        return 'Normal'; //
+        return 'Normal';
       case 'Setelah Makan':
-        if (glucoseLevel >= 180) return 'Tinggi'; //
+        if (glucoseLevel >= 180) return 'Tinggi';
         return 'Normal';
       case 'Sewaktu':
-        if (glucoseLevel >= 160) return 'Tinggi'; //
+        if (glucoseLevel >= 160) return 'Tinggi';
         return 'Normal';
       default:
         return 'Normal';
     }
   }
 
-  // Fallback default jika usia tidak masuk kategori manapun
   return 'Normal';
 }
 
 export function calculateReadingTime(content: string): number {
   if (!content) return 0;
-  const wordsPerMinute = 200; // Average reading speed
-  const text = content.replace(/<[^>]+>/g, ''); // Remove HTML tags
+  const wordsPerMinute = 200;
+  const text = content.replace(/<[^>]+>/g, '');
   const wordCount = text.split(/\s+/).length;
   const readingTime = Math.ceil(wordCount / wordsPerMinute);
   return readingTime;

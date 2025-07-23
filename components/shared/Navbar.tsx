@@ -57,9 +57,12 @@ export function Navbar() {
                 <Link href="/tracker">
                   <Button size="sm" variant="ghost">Dashboard</Button>
                 </Link>
-                {/* TAUTAN BARU DITAMBAHKAN DI SINI */}
                 <Link href="/reports">
                   <Button size="sm" variant="ghost">Laporan</Button>
+                </Link>
+                {/* TAUTAN BARU DITAMBAHKAN DI SINI */}
+                <Link href="/profile">
+                  <Button size="sm" variant="ghost">Profil</Button>
                 </Link>
                 <LogoutButton />
               </>

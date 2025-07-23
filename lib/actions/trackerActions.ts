@@ -6,8 +6,9 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
-import { getBloodSugarStatus } from '@/lib/utils';
+import { getBloodSugarStatus, calculateAge } from '@/lib/utils';
 import { z } from 'zod';
+import { getUserProfile } from './userActions';
 
 // Tipe data untuk item makanan, sekarang dengan quantity
 export interface FoodItem {
@@ -40,12 +41,11 @@ export type FormState = {
 // Skema validasi untuk entri baru
 const AddEntrySchema = z.object({
   foods_consumed: z.string().min(3, { message: "Anda harus memilih minimal satu makanan." }),
-  user_age: z.coerce.number().min(1, { message: "Usia harus diisi." }),
   condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
   entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
   entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
-  mood: z.string().optional(),      // <-- TAMBAHKAN DI SKEMA
-  activity: z.string().optional(),  // <-- TAMBAHKAN DI SKEMA
+  mood: z.string().optional(),
+  activity: z.string().optional(),
 });
 
 // Skema validasi untuk update entri
@@ -99,12 +99,14 @@ const formatFoodName = (foods: FoodItem[]): string => {
   ).join(', ');
 };
 
+
 export async function addMealEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
   const supabase = await createClient();
-  const session = await auth();
-  const user = session?.user;
+  const userProfile = await getUserProfile();
 
-  if (!user) return { error: 'Unauthorized. Silakan login terlebih dahulu.' };
+  if (!userProfile || !userProfile.date_of_birth) {
+    return { error: 'Profil pengguna tidak lengkap. Silakan lengkapi profil Anda.' };
+  }
 
   const validatedFields = AddEntrySchema.safeParse(Object.fromEntries(formData.entries()));
 
@@ -112,7 +114,11 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
       return { error: "Semua field wajib diisi dengan benar." };
   }
   
-  const { foods_consumed, user_age, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
+  // user_age tidak lagi diambil dari form
+  const { foods_consumed, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
+  
+  // Hitung usia secara otomatis
+  const user_age = calculateAge(userProfile.date_of_birth);
 
   let foods: FoodItem[];
   try {
@@ -131,11 +137,11 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   const status = getBloodSugarStatus(user_age, condition, totalSugar);
   
   const entryToInsert = {
-    user_id: user.id,
+    user_id: userProfile.id,
     created_at: combinedDateTime.toISOString(),
     food_name: combinedFoodName,
     sugar_g: totalSugar,
-    age_at_input: user_age,
+    age_at_input: user_age, // Simpan usia saat input
     condition,
     status,
     mood: mood || null,

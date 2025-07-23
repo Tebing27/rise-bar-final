@@ -21,20 +21,15 @@ function SubmitButton() {
   );
 }
 
-// Helper to parse food names with quantities
 const parseFoodName = (name: string): FoodItem[] => {
   if (!name) return [];
-  const foodItems: FoodItem[] = [];
-  
-  name.split(', ').forEach((foodString, index) => {
+  return name.split(', ').map((foodString, index) => {
     const match = foodString.match(/(.+) \((\d+)x\)$/);
     if (match) {
-      foodItems.push({ id: `${match[1]}-${index}`, name: match[1], quantity: parseInt(match[2], 10), sugar_g: 0 });
-    } else {
-      foodItems.push({ id: `${foodString}-${index}`, name: foodString, quantity: 1, sugar_g: 0 });
+      return { id: `${match[1]}-${index}`, name: match[1], quantity: parseInt(match[2], 10), sugar_g: 0 };
     }
+    return { id: `${foodString}-${index}`, name: foodString, quantity: 1, sugar_g: 0 };
   });
-  return foodItems;
 };
 
 
@@ -79,17 +74,12 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
       setSearchResults([]);
       return;
     }
-
     const debounceTimer = setTimeout(() => {
-        const fetchFoods = async () => {
-            const results = await searchFoods(query);
-            setSearchResults(results);
-        };
-        fetchFoods();
+        searchFoods(query).then(setSearchResults);
     }, 300);
-
     return () => clearTimeout(debounceTimer);
   }, [query]);
+
   useEffect(() => {
     if (hasModifiedFoods.current) {
       const newTotal = selectedFoods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);
@@ -105,9 +95,8 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
           return prevFoods.map(f => 
             f.name === food.name ? { ...f, quantity: f.quantity + 1, sugar_g: food.sugar_g } : f
           );
-        } else {
-          return [...prevFoods, { ...food, id: `${food.name}-${Date.now()}`, quantity: 1 }];
         }
+        return [...prevFoods, { ...food, id: `${food.name}-${Date.now()}`, quantity: 1 }];
       });
     setQuery('');
     setSearchResults([]);
@@ -121,17 +110,13 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
             return prevFoods.map(f =>
                 f.id === foodId ? { ...f, quantity: f.quantity - 1 } : f
             );
-        } else {
-            return prevFoods.filter(food => food.id !== foodId);
         }
+        return prevFoods.filter(food => food.id !== foodId);
     });
   };
 
-const clientAction = async (prevState: FormState | null, formData: FormData) => {
-    // Instead of creating new FormData from formData, just clone it
+  const clientAction = async (prevState: FormState | null, formData: FormData) => {
     const updatedFormData = new FormData();
-    
-    // Copy existing values
     for (const [key, value] of formData.entries()) {
         updatedFormData.set(key, value);
     }
@@ -151,7 +136,7 @@ const clientAction = async (prevState: FormState | null, formData: FormData) => 
         toast.error(result.error);
     }
     return result;
-};
+  };
   
   const [state, formAction] = useActionState(clientAction, initialState);
 
@@ -211,17 +196,13 @@ const clientAction = async (prevState: FormState | null, formData: FormData) => 
             ) : <p className="text-sm text-gray-500 mt-1">Pilih makanan di atas.</p>}
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div>
               <Label htmlFor="sugar_g_edit">Total Gula (g)</Label>
               <Input id="sugar_g_edit" name="sugar_g" type="number" step="0.1" value={totalSugar.toFixed(1)} readOnly className="bg-gray-100" />
-            </div>
-            <div>
-              <Label htmlFor="age_at_input_edit">Usia (tahun)</Label>
-              <Input id="age_at_input_edit" name="age_at_input" type="number" defaultValue={entry.age_at_input || ''} required />
-            </div>
           </div>
           
+          {/* INPUT USIA DIHAPUS DARI SINI */}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="entry_date_edit">Tanggal</Label>
@@ -246,6 +227,27 @@ const clientAction = async (prevState: FormState | null, formData: FormData) => 
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Input untuk Mood dan Aktivitas */}
+          <div>
+            <Label htmlFor="mood_edit">Perasaan Anda</Label>
+            <Select name="mood" defaultValue={entry.mood || ''}>
+              <SelectTrigger id="mood_edit">
+                <SelectValue placeholder="Pilih mood (opsional)..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Senang">😊 Senang</SelectItem>
+                <SelectItem value="Biasa">😐 Biasa</SelectItem>
+                <SelectItem value="Stres"> stressful Stres</SelectItem>
+                <SelectItem value="Lelah">😴 Lelah</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="activity_edit">Aktivitas Fisik</Label>
+            <Input id="activity_edit" name="activity" defaultValue={entry.activity || ''} placeholder="cth: Jalan santai 30 menit" />
+          </div>
+
 
           <DialogFooter>
             <DialogClose asChild>

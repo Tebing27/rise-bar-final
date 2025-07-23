@@ -1,3 +1,4 @@
+// components/tracker/TrackerForm.tsx
 'use client';
 
 import { useState, useEffect, useActionState } from 'react';
@@ -18,6 +19,7 @@ function SubmitButton() {
   );
 }
 
+// Menghapus prop 'userAge' dari definisi komponen
 export default function TrackerForm() {
   const initialState: FormState | null = null;
   const [state, formAction] = useActionState(addMealEntry, initialState); 
@@ -29,36 +31,25 @@ export default function TrackerForm() {
   const [entryDateTime, setEntryDateTime] = useState({ date: '', time: '' });
 
   useEffect(() => {
-    if (state?.error) toast.error(state.error);
-    if (state?.success) {
-      toast.success(state.success);
+    if ((state as any)?.error) toast.error((state as any).error);
+    if ((state as any)?.success) {
+      toast.success((state as any).success);
       setSelectedFoods([]);
       setQuery('');
       setEntryDateTime({ date: '', time: '' });
     }
   }, [state]);
 
-  // --- PERBAIKAN DEBOUNCE DI SINI ---
   useEffect(() => {
-    // Jika query kosong atau terlalu pendek, jangan lakukan apa-apa
     if (query.length < 2) {
       setSearchResults([]);
       return;
     }
-
-    // Atur timer untuk menunda pencarian
     const debounceTimer = setTimeout(() => {
-      const fetchFoods = async () => {
-        const results = await searchFoods(query);
-        setSearchResults(results);
-      };
-      fetchFoods();
-    }, 300); // Tunggu 300ms setelah pengguna berhenti mengetik
-
-    // Bersihkan timer jika pengguna mengetik lagi sebelum 300ms
+      searchFoods(query).then(setSearchResults);
+    }, 300);
     return () => clearTimeout(debounceTimer);
-  }, [query]); // Efek ini hanya berjalan saat 'query' berubah
-  // --- AKHIR PERBAIKAN ---
+  }, [query]);
 
   const addFoodToSelection = (food: FoodItem) => {
     setSelectedFoods(prevFoods => {
@@ -90,14 +81,13 @@ export default function TrackerForm() {
 
   return (
     <>
-      <Toaster position="top-center" richColors />
       <form
         action={formAction}
-        key={state?.success ? Date.now() : 'static-key'}
+        key={(state as any)?.success ? Date.now() : 'static-key'}
         className="space-y-6"
       >
         <input type="hidden" name="foods_consumed" value={JSON.stringify(selectedFoods)} />
-
+        
         <div className="relative">
           <Label htmlFor="food_search">Cari & Tambah Makanan</Label>
           <Input
@@ -106,8 +96,7 @@ export default function TrackerForm() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ketik nama makanan..."
             autoComplete="off"
-            className="mt-1.5" // <-- TAMBAHKAN INI
-          />  
+          />
           {searchResults.length > 0 && (
             <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {searchResults.map((food) => (
@@ -131,9 +120,7 @@ export default function TrackerForm() {
                             </span>
                             <div className="flex items-center gap-2">
                                 <span className="text-gray-500">{(food.sugar_g * food.quantity).toFixed(1)}g</span>
-                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFoodFromSelection(food.id)}>
-                                    &times;
-                                </Button>
+                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFoodFromSelection(food.id!)}>&times;</Button>
                             </div>
                         </div>
                     ))}
@@ -150,51 +137,48 @@ export default function TrackerForm() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="entry_date">Tanggal</Label>
-            <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required className="mt-1.5" /> {/* <-- TAMBAHKAN INI */}
+            <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required />
           </div>
           <div>
             <Label htmlFor="entry_time">Waktu</Label>
-            <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required className="mt-1.5" /> {/* <-- TAMBAHKAN INI */}
+            <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <Label htmlFor="user_age">Usia (tahun)</Label>
-                <Input id="user_age" name="user_age" type="number" placeholder="Masukkan usia Anda" required className="mt-1.5"/> {/* <-- TAMBAHKAN INI */}
-            </div>
-            <div>
-                <Label htmlFor="condition">Kondisi</Label>
-                <Select name="condition" defaultValue="Setelah Makan">
-                    <SelectTrigger className="mt-1.5"> {/* <-- TAMBAHKAN INI */}
-                        <SelectValue placeholder="Pilih kondisi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Setelah Makan">Setelah Makan</SelectItem>
-                        <SelectItem value="Sebelum Makan (Puasa)">Sebelum Makan (Puasa)</SelectItem>
-                        <SelectItem value="Sewaktu">Sewaktu</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div>
-    <Label htmlFor="mood">Bagaimana perasaan Anda?</Label>
-    <Select name="mood">
-        <SelectTrigger>
-            <SelectValue placeholder="Pilih mood..." />
-        </SelectTrigger>
-        <SelectContent>
-            <SelectItem value="Senang">😊 Senang</SelectItem>
-            <SelectItem value="Biasa">😐 Biasa</SelectItem>
-            <SelectItem value="Stres"> stressful Stres</SelectItem>
-            <SelectItem value="Lelah">😴 Lelah</SelectItem>
-        </SelectContent>
-    </Select>
-</div>
+        {/* Input Usia sudah dihapus dari sini */}
 
-<div>
-    <Label htmlFor="activity">Aktivitas Fisik Hari Ini</Label>
-    <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit" />
-</div>
+        <div>
+            <Label htmlFor="condition">Kondisi</Label>
+            <Select name="condition" defaultValue="Setelah Makan">
+                <SelectTrigger>
+                    <SelectValue placeholder="Pilih kondisi" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Setelah Makan">Setelah Makan</SelectItem>
+                    <SelectItem value="Sebelum Makan (Puasa)">Sebelum Makan (Puasa)</SelectItem>
+                    <SelectItem value="Sewaktu">Sewaktu</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
+        <div>
+            <Label htmlFor="mood">Bagaimana perasaan Anda?</Label>
+            <Select name="mood">
+                <SelectTrigger>
+                    <SelectValue placeholder="Pilih mood (opsional)..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Senang">😊 Senang</SelectItem>
+                    <SelectItem value="Biasa">😐 Biasa</SelectItem>
+                    <SelectItem value="Stres"> stressful Stres</SelectItem>
+                    <SelectItem value="Lelah">😴 Lelah</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+
+        <div>
+            <Label htmlFor="activity">Aktivitas Fisik Hari Ini</Label>
+            <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit (opsional)" />
         </div>
 
         <SubmitButton />
