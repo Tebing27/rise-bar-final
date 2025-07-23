@@ -19,8 +19,8 @@ export function Navbar() {
   ];
 
   return (
-    <header className="fixed w-full bg-background/80 backdrop-blur-sm border-b z-50">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 w-full bg-background/80 backdrop-blur-sm border-b z-50">
+      <nav className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex-shrink-0">
             <Link href="/" className="text-2xl font-bold text-primary">
@@ -33,7 +33,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-sm font-medium text-foreground/60 hover:text-primary transition-colors',
+                  'text-sm font-medium text-foreground/60 transition-colors hover:text-primary',
                   pathname === link.href && 'text-primary'
                 )}
               >
@@ -41,23 +41,25 @@ export function Navbar() {
               </Link>
             ))}
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {status === 'unauthenticated' && (
-              <Link href="/login">
-                <Button variant="ghost" size="sm">Login</Button>
-              </Link>
-            )}
-             {status === 'unauthenticated' && (
-               <Link href="/register">
-                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-accent">
-                  Daftar
-                </Button>
-              </Link>
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">Login</Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm">Daftar</Button>
+                </Link>
+              </>
             )}
             {status === 'authenticated' && (
               <>
                 <Link href="/tracker">
                   <Button size="sm" variant="ghost">Dashboard</Button>
+                </Link>
+                {/* TAUTAN BARU DITAMBAHKAN DI SINI */}
+                <Link href="/reports">
+                  <Button size="sm" variant="ghost">Laporan</Button>
                 </Link>
                 <LogoutButton />
               </>

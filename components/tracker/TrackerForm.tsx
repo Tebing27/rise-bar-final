@@ -176,6 +176,25 @@ export default function TrackerForm() {
                     </SelectContent>
                 </Select>
             </div>
+            <div>
+    <Label htmlFor="mood">Bagaimana perasaan Anda?</Label>
+    <Select name="mood">
+        <SelectTrigger>
+            <SelectValue placeholder="Pilih mood..." />
+        </SelectTrigger>
+        <SelectContent>
+            <SelectItem value="Senang">😊 Senang</SelectItem>
+            <SelectItem value="Biasa">😐 Biasa</SelectItem>
+            <SelectItem value="Stres"> stressful Stres</SelectItem>
+            <SelectItem value="Lelah">😴 Lelah</SelectItem>
+        </SelectContent>
+    </Select>
+</div>
+
+<div>
+    <Label htmlFor="activity">Aktivitas Fisik Hari Ini</Label>
+    <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit" />
+</div>
         </div>
 
         <SubmitButton />

@@ -1,4 +1,5 @@
 // lib/utils.ts
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -6,38 +7,77 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getBloodSugarStatus(age: number, condition: string, glucoseLevel: number): 'Tinggi' | 'Normal' | 'Rendah' {
-    if (age < 6) {
-        // Logika untuk anak di bawah 6 tahun
-        if (condition === 'Sebelum Makan (Puasa)') {
-            if (glucoseLevel < 100) return 'Rendah';
-            if (glucoseLevel > 200) return 'Tinggi';
-        } else {
-            if (glucoseLevel > 200) return 'Tinggi';
-        }
-    } else if (age >= 6 && age <= 12) {
-        // Logika untuk anak 6-12 tahun
-        if (condition === 'Sebelum Makan (Puasa)') {
-            if (glucoseLevel < 70) return 'Rendah';
-            if (glucoseLevel > 150) return 'Tinggi';
-        } else {
-            if (glucoseLevel > 150) return 'Tinggi';
-        }
-    } else { 
-        // Logika untuk di atas 12 tahun
-        // --- PERBAIKAN DI SINI ---
-        if (condition === 'Sebelum Makan (Puasa)') { // Diubah dari 'Puasa'
-            if (glucoseLevel < 70) return 'Rendah';
-            if (glucoseLevel > 130) return 'Tinggi';
-        } else if (condition === 'Setelah Makan') {
-            if (glucoseLevel > 180) return 'Tinggi';
-        } else { // Untuk kondisi "Sewaktu"
-            if (glucoseLevel < 100) return 'Rendah';
-            if (glucoseLevel > 140) return 'Tinggi';
-        }
+/**
+ * Menentukan status gula darah berdasarkan usia, kondisi, dan level glukosa.
+ * Logika ini telah disesuaikan dengan gambar referensi yang diberikan.
+ * @param age Usia pengguna dalam tahun.
+ * @param condition Kondisi pengukuran: 'Sebelum Makan (Puasa)', 'Setelah Makan', atau 'Sewaktu'.
+ * @param glucoseLevel Kadar glukosa dalam mg/dL.
+ * @returns 'Tinggi', 'Normal', atau 'Rendah'.
+ */
+export function getBloodSugarStatus(
+  age: number,
+  condition: string,
+  glucoseLevel: number
+): 'Tinggi' | 'Normal' | 'Rendah' {
+  
+  // Kategori 1: Anak-anak (0-12 tahun)
+  if (age <= 12) {
+    switch (condition) {
+      case 'Sebelum Makan (Puasa)':
+        if (glucoseLevel < 70) return 'Rendah';
+        if (glucoseLevel > 100) return 'Tinggi';
+        return 'Normal'; //
+      case 'Setelah Makan':
+        if (glucoseLevel >= 140) return 'Tinggi'; //
+        return 'Normal';
+      case 'Sewaktu':
+        if (glucoseLevel >= 140) return 'Tinggi'; //
+        // Tidak ada standar 'Rendah' yang spesifik untuk sewaktu, jadi kita anggap normal
+        return 'Normal'; 
+      default:
+        return 'Normal';
     }
-    // Jika tidak ada kondisi di atas yang terpenuhi, statusnya adalah Normal
-    return 'Normal';
+  }
+
+  // Kategori 2: Remaja & Dewasa (13-59 tahun)
+  if (age >= 13 && age <= 59) {
+    switch (condition) {
+      case 'Sebelum Makan (Puasa)':
+        if (glucoseLevel < 70) return 'Rendah';
+        if (glucoseLevel > 99) return 'Tinggi';
+        return 'Normal'; //
+      case 'Setelah Makan':
+        if (glucoseLevel >= 140) return 'Tinggi'; //
+        return 'Normal';
+      case 'Sewaktu':
+        if (glucoseLevel >= 140) return 'Tinggi'; //
+        return 'Normal';
+      default:
+        return 'Normal';
+    }
+  }
+
+  // Kategori 3: Lansia (60+ tahun)
+  if (age >= 60) {
+    switch (condition) {
+      case 'Sebelum Makan (Puasa)':
+        if (glucoseLevel < 80) return 'Rendah';
+        if (glucoseLevel > 120) return 'Tinggi';
+        return 'Normal'; //
+      case 'Setelah Makan':
+        if (glucoseLevel >= 180) return 'Tinggi'; //
+        return 'Normal';
+      case 'Sewaktu':
+        if (glucoseLevel >= 160) return 'Tinggi'; //
+        return 'Normal';
+      default:
+        return 'Normal';
+    }
+  }
+
+  // Fallback default jika usia tidak masuk kategori manapun
+  return 'Normal';
 }
 
 export function calculateReadingTime(content: string): number {

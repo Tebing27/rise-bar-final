@@ -89,7 +89,8 @@ export async function getAnalysisRecommendation(): Promise<Recommendation | null
     }
 
     const statusCounts = allEntries.reduce((acc, entry) => {
-        acc[entry.status] = (acc[entry.status] || 0) + 1;
+        const status = entry.status as 'Tinggi' | 'Normal' | 'Rendah';
+        acc[status] = (acc[status] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
 
@@ -106,18 +107,58 @@ export async function getAnalysisRecommendation(): Promise<Recommendation | null
         const { data, error: recError } = await supabase
             .rpc('get_random_recommendation', { p_category: dominantStatus });
 
-        // --- PERBAIKAN DI SINI ---
-        // Cek jika terjadi error atau jika data yang dikembalikan kosong/tidak valid
         if (recError || !data || data.length === 0) {
             return null;
         }
         
-        // Kembalikan item pertama dari array yang dihasilkan oleh RPC
         return data[0] as Recommendation;
-        // --- AKHIR PERBAIKAN ---
 
     } catch (e) {
         console.error("RPC call failed:", e);
         return null;
     }
+}
+
+export async function getPersonalizedInsights(): Promise<string[]> {
+  const supabase = await createClient();
+  const session = await auth();
+  const user = session?.user;
+  if (!user) return [];
+
+  const { data: entries } = await supabase
+    .from('glucose_entries')
+    .select('food_name, status')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (!entries || entries.length < 5) return [];
+
+  const insights: string[] = [];
+  const foodStatusCount: { [key: string]: { tinggi: number; total: number } } = {};
+
+  for (const entry of entries) {
+    // ✅ PERBAIKAN: Tambahkan pengecekan untuk memastikan food_name ada sebelum di-split.
+    if (entry.food_name && typeof entry.food_name === 'string') {
+      const foods = entry.food_name.split(',').map((f: string) => f.trim().replace(/ \(\d+x\)$/, ''));
+      for (const food of foods) {
+        if (!foodStatusCount[food]) {
+          foodStatusCount[food] = { tinggi: 0, total: 0 };
+        }
+        foodStatusCount[food].total++;
+        if (entry.status === 'Tinggi') {
+          foodStatusCount[food].tinggi++;
+        }
+      }
+    }
+  }
+
+  for (const food in foodStatusCount) {
+    const { tinggi, total } = foodStatusCount[food];
+    if (total > 3 && (tinggi / total) > 0.6) {
+      insights.push(`Sepertinya, setiap Anda mengonsumsi **${food}**, kadar gula cenderung menjadi tinggi.`);
+    }
+  }
+  
+  return insights;
 }

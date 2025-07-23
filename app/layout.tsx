@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { Navbar } from '@/components/shared/Navbar';
-import { Footer } from '@/components/shared/Footer';
+// import { Footer } from '@/components/shared/Footer';
 
 // Inisialisasi font Inter
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -26,7 +26,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           <main className="flex-grow pt-16">{children}</main>
-          <Footer />
+          {/* <Footer /> */}
         </AuthProvider>
       </body>
     </html>

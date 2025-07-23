@@ -18,7 +18,7 @@ export function CTA() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
                <Link href="/register">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 mb-5">
                   Daftar Sekarang
                 </Button>
               </Link>

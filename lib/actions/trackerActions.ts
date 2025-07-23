@@ -27,6 +27,8 @@ export interface GlucoseEntry {
   age_at_input: number | null;
   condition: string;
   status: 'Tinggi' | 'Normal' | 'Rendah';
+  mood?: string | null;      // <-- KOLOM BARU
+  activity?: string | null;  // <-- KOLOM BARU
 }
 
 // Tipe data untuk state form
@@ -42,6 +44,8 @@ const AddEntrySchema = z.object({
   condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
   entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
   entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
+  mood: z.string().optional(),      // <-- TAMBAHKAN DI SKEMA
+  activity: z.string().optional(),  // <-- TAMBAHKAN DI SKEMA
 });
 
 // Skema validasi untuk update entri
@@ -53,6 +57,8 @@ const UpdateEntrySchema = z.object({
     condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
     entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
     entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
+    mood: z.string().optional(),
+    activity: z.string().optional(),
 });
 
 
@@ -87,7 +93,6 @@ export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
   }
 }
 
-// Fungsi helper untuk memformat nama makanan dengan kuantitas
 const formatFoodName = (foods: FoodItem[]): string => {
   return foods.map(food => 
     food.quantity > 1 ? `${food.name} (${food.quantity}x)` : food.name
@@ -107,7 +112,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
       return { error: "Semua field wajib diisi dengan benar." };
   }
   
-  const { foods_consumed, user_age, condition, entry_date, entry_time } = validatedFields.data;
+  const { foods_consumed, user_age, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
 
   let foods: FoodItem[];
   try {
@@ -132,7 +137,9 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
     sugar_g: totalSugar,
     age_at_input: user_age,
     condition,
-    status
+    status,
+    mood: mood || null,
+    activity: activity || null,
   };
 
   const { error } = await supabase.from('glucose_entries').insert([entryToInsert]);
@@ -146,18 +153,46 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
-export async function getTrackerEntries(): Promise<GlucoseEntry[]> {
+export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]> {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
 
   if (!user) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('glucose_entries')
     .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .eq('user_id', user.id);
+
+  // Logika Filter Tanggal
+  if (filter && filter !== 'all') {
+    const today = new Date();
+    today.setUTCHours(23, 59, 59, 999); 
+
+    let startDate = new Date();
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    switch (filter) {
+      case 'today':
+        break;
+      case 'yesterday':
+        startDate.setDate(startDate.getDate() - 1);
+        today.setDate(today.getDate() - 1);
+        break;
+      case 'last3days':
+        startDate.setDate(startDate.getDate() - 2);
+        break;
+      case 'last7days':
+        startDate.setDate(startDate.getDate() - 6);
+        break;
+    }
+    query = query.gte('created_at', startDate.toISOString()).lte('created_at', today.toISOString());
+  }
+
+  query = query.order('created_at', { ascending: false });
+
+  const { data, error } = await query;
     
   if (error) {
       console.error("Error fetching tracker entries:", error);
@@ -179,7 +214,7 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
       return { error: "Semua field wajib diisi dengan benar." };
     }
     
-    const { id, food_name, sugar_g, age_at_input, condition, entry_date, entry_time } = validatedFields.data;
+    const { id, food_name, sugar_g, age_at_input, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
     
     const combinedDateTime = new Date(`${entry_date}T${entry_time}`);
     if (isNaN(combinedDateTime.getTime())) {
@@ -196,7 +231,9 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
         age_at_input,
         condition,
         status,
-        created_at: combinedDateTime.toISOString()
+        created_at: combinedDateTime.toISOString(),
+        mood: mood || null,
+        activity: activity || null,
       })
       .eq('id', id)
       .eq('user_id', user.id);

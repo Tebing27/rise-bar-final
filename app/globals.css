@@ -1,3 +1,5 @@
+/* app/globals.css (Versi Final yang Sudah Diperbaiki) */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -37,6 +39,8 @@
   --color-brand: hsl(var(--brand));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));                  /* <-- TAMBAHKAN INI */
+  --color-popover-foreground: hsl(var(--popover-foreground));
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -52,6 +56,8 @@
     --foreground: 20 14.3% 4.1%;    /* Abu-abu Gelap */
     --card: 0 0% 100%;
     --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;                  /* Pastikan baris ini ada */
+    --popover-foreground: 20 14.3% 4.1%;
     --primary: 173 95% 30%;       /* Teal Gelap */
     --primary-foreground: 0 0% 100%;
     --secondary: 215 27.9% 31.4%;
@@ -62,12 +68,6 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    
-    /* ++ TAMBAHKAN WARNA STATUS ++ */
-    --success: 142.1 76.2% 41.2%; /* Hijau untuk status 'Normal' */
-    --info: 217.2 91.2% 59.8%;   /* Biru untuk status 'Rendah' */
-    /* -- AKHIR TAMBAHAN -- */
-    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 173 95% 30%;
@@ -134,5 +134,8 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  .card {
+    @apply border rounded-xl shadow-sm;
   }
 }

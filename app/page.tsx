@@ -7,6 +7,7 @@ import { Hero } from '@/components/shared/Hero';
 import { Features } from '@/components/shared/Features';
 import { CTA } from '@/components/shared/CTA';
 import { PostCard } from '@/components/shared/PostCard';
+import { Footer } from '@/components/shared/Footer';
 
 async function getPopularPosts() {
   const { data, error } = await db
@@ -64,6 +65,7 @@ export default async function HomePage() {
       )}
 
       <CTA />
+      <Footer/>
     </>
   );
 }
