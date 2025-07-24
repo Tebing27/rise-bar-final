@@ -20,7 +20,7 @@ export async function WeeklySummary() {
   }
 
   return (
-    <Card>
+    <Card className='mt-5'>
       <CardHeader>
         <CardTitle>Ringkasan 7 Hari Terakhir</CardTitle>
       </CardHeader>

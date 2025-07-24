@@ -13,13 +13,15 @@ export function Navbar() {
   const pathname = usePathname();
   const userRole = session?.user?.role;
 
+  // Cek apakah pengguna berada di dalam area aplikasi utama (dasbor)
+  const isAppArea = pathname.startsWith('/tracker') || pathname.startsWith('/reports') || pathname.startsWith('/profile');
+
   const navLinks = [
     { href: '/', label: 'Beranda' },
     { href: '/blog', label: 'Blog' },
     { href: '/#fitur', label: 'Fitur' },
   ];
 
-  // Jangan tampilkan Navbar sama sekali jika sedang berada di area admin
   if (pathname.startsWith('/admin')) {
     return null;
   }
@@ -63,10 +65,18 @@ export function Navbar() {
 
             {status === 'authenticated' && (
               <>
-                {/* Tombol Dashboard akan mengarah ke tempat yang benar berdasarkan role */}
-                <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
-                  <Button size="sm" variant="ghost">Dashboard</Button>
-                </Link>
+                {/* --- LOGIKA DINAMIS DI SINI --- */}
+                {isAppArea ? (
+                  // Jika di dalam dasbor, tampilkan tombol Profil
+                  <Link href="/profile">
+                    <Button size="sm" variant="ghost">Profil</Button>
+                  </Link>
+                ) : (
+                  // Jika di halaman lain (spt homepage), tampilkan tombol Dashboard
+                  <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
+                    <Button size="sm" variant="ghost">Dashboard</Button>
+                  </Link>
+                )}
                 <LogoutButton />
               </>
             )}

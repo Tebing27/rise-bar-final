@@ -84,12 +84,12 @@ export default function TrackerForm() {
       <form
         action={formAction}
         key={(state as any)?.success ? Date.now() : 'static-key'}
-        className="space-y-6"
+        className="space-y-6 mt-5"
       >
         <input type="hidden" name="foods_consumed" value={JSON.stringify(selectedFoods)} />
         
         <div className="relative">
-          <Label htmlFor="food_search">Cari & Tambah Makanan</Label>
+          <Label htmlFor="food_search" className='mb-5'>Cari & Tambah Makanan</Label>
           <Input
             id="food_search"
             value={query}
@@ -136,11 +136,11 @@ export default function TrackerForm() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="entry_date">Tanggal</Label>
+            <Label htmlFor="entry_date" className='mb-5'>Tanggal</Label>
             <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required />
           </div>
           <div>
-            <Label htmlFor="entry_time">Waktu</Label>
+            <Label htmlFor="entry_time" className='mb-5'>Waktu</Label>
             <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function TrackerForm() {
         {/* Input Usia sudah dihapus dari sini */}
 
         <div>
-            <Label htmlFor="condition">Kondisi</Label>
+            <Label htmlFor="condition" className='mb-5'>Kondisi</Label>
             <Select name="condition" defaultValue="Setelah Makan">
                 <SelectTrigger>
                     <SelectValue placeholder="Pilih kondisi" />
@@ -162,7 +162,7 @@ export default function TrackerForm() {
         </div>
 
         <div>
-            <Label htmlFor="mood">Bagaimana perasaan Anda?</Label>
+            <Label htmlFor="mood" className='mb-5'>Bagaimana perasaan Anda?</Label>
             <Select name="mood">
                 <SelectTrigger>
                     <SelectValue placeholder="Pilih mood (opsional)..." />
@@ -170,14 +170,14 @@ export default function TrackerForm() {
                 <SelectContent>
                     <SelectItem value="Senang">😊 Senang</SelectItem>
                     <SelectItem value="Biasa">😐 Biasa</SelectItem>
-                    <SelectItem value="Stres"> stressful Stres</SelectItem>
+                    <SelectItem value="Stres">😩 Stres</SelectItem>
                     <SelectItem value="Lelah">😴 Lelah</SelectItem>
                 </SelectContent>
             </Select>
         </div>
 
         <div>
-            <Label htmlFor="activity">Aktivitas Fisik Hari Ini</Label>
+            <Label htmlFor="activity" className='mb-5'>Aktivitas Fisik Hari Ini</Label>
             <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit (opsional)" />
         </div>
 

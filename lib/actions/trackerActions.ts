@@ -10,7 +10,7 @@ import { getBloodSugarStatus, calculateAge } from '@/lib/utils';
 import { z } from 'zod';
 import { getUserProfile } from './userActions';
 
-// Tipe data untuk item makanan, sekarang dengan quantity
+// ... (Interface FoodItem dan GlucoseEntry tetap sama)
 export interface FoodItem {
   id: string;
   name: string;
@@ -18,7 +18,6 @@ export interface FoodItem {
   quantity: number; 
 }
 
-// Tipe data untuk entri glukosa
 export interface GlucoseEntry {
   id: string;
   user_id: string;
@@ -28,17 +27,16 @@ export interface GlucoseEntry {
   age_at_input: number | null;
   condition: string;
   status: 'Tinggi' | 'Normal' | 'Rendah';
-  mood?: string | null;      // <-- KOLOM BARU
-  activity?: string | null;  // <-- KOLOM BARU
+  mood?: string | null;
+  activity?: string | null;
 }
 
-// Tipe data untuk state form
 export type FormState = {
   success?: string;
   error?: string;
 };
 
-// Skema validasi untuk entri baru
+// ... (Skema AddEntrySchema tetap sama)
 const AddEntrySchema = z.object({
   foods_consumed: z.string().min(3, { message: "Anda harus memilih minimal satu makanan." }),
   condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
@@ -48,20 +46,52 @@ const AddEntrySchema = z.object({
   activity: z.string().optional(),
 });
 
-// Skema validasi untuk update entri
+
+// --- PERBAIKAN DI SINI ---
+// Menghapus `age_at_input` dari skema validasi update
 const UpdateEntrySchema = z.object({
     id: z.string(),
     food_name: z.string().min(1, { message: "Nama makanan tidak boleh kosong." }),
     sugar_g: z.coerce.number().min(0, { message: "Gula harus angka positif." }),
-    age_at_input: z.coerce.number().min(1, { message: "Usia harus diisi." }),
+    // age_at_input: z.coerce.number().min(1, { message: "Usia harus diisi." }), // <-- DIHAPUS
     condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
     entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
     entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
     mood: z.string().optional(),
     activity: z.string().optional(),
 });
+// -------------------------
 
+export async function getFoodsByNames(names: string[]): Promise<FoodItem[]> {
+  if (!names || names.length === 0) return [];
+  
+  try {
+    const foodsRef = collection(db, 'foods');
+    // Menggunakan query 'in' untuk mencari semua dokumen dengan nama yang cocok
+    const q = query(
+      foodsRef,
+      where('name', 'in', names)
+    );
 
+    const querySnapshot = await getDocs(q);
+    const foods: FoodItem[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      foods.push({
+        id: doc.id,
+        name: data.name,
+        sugar_g: data.sugar_g,
+        quantity: 1 // Kuantitas default, akan diperbarui nanti
+      });
+    });
+    return foods;
+  } catch (error) {
+    console.error("Error getting foods by names:", error);
+    return [];
+  }
+}
+
+// ... (fungsi searchFoods dan formatFoodName tetap sama)
 export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
   if (!searchQuery || searchQuery.length < 2) return [];
   const lowerCaseQuery = searchQuery.toLowerCase();
@@ -99,7 +129,7 @@ const formatFoodName = (foods: FoodItem[]): string => {
   ).join(', ');
 };
 
-
+// ... (fungsi addMealEntry tetap sama)
 export async function addMealEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
   const supabase = await createClient();
   const userProfile = await getUserProfile();
@@ -114,10 +144,8 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
       return { error: "Semua field wajib diisi dengan benar." };
   }
   
-  // user_age tidak lagi diambil dari form
   const { foods_consumed, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
   
-  // Hitung usia secara otomatis
   const user_age = calculateAge(userProfile.date_of_birth);
 
   let foods: FoodItem[];
@@ -141,7 +169,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
     created_at: combinedDateTime.toISOString(),
     food_name: combinedFoodName,
     sugar_g: totalSugar,
-    age_at_input: user_age, // Simpan usia saat input
+    age_at_input: user_age,
     condition,
     status,
     mood: mood || null,
@@ -159,6 +187,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
+// ... (fungsi getTrackerEntries tetap sama)
 export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]> {
   const supabase = await createClient();
   const session = await auth();
@@ -171,7 +200,6 @@ export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]
     .select('*')
     .eq('user_id', user.id);
 
-  // Logika Filter Tanggal
   if (filter && filter !== 'all') {
     const today = new Date();
     today.setUTCHours(23, 59, 59, 999); 
@@ -207,12 +235,16 @@ export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]
   return data as GlucoseEntry[];
 }
 
+
+// --- PERBAIKAN DI SINI ---
+// Memperbarui fungsi update untuk menghitung usia secara otomatis
 export async function updateTrackerEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
     const supabase = await createClient();
-    const session = await auth();
-    const user = session?.user;
+    const userProfile = await getUserProfile();
   
-    if (!user) return { error: 'Unauthorized' };
+    if (!userProfile || !userProfile.date_of_birth) {
+      return { error: 'Profil pengguna tidak lengkap.' };
+    }
   
     const validatedFields = UpdateEntrySchema.safeParse(Object.fromEntries(formData.entries()));
   
@@ -220,8 +252,12 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
       return { error: "Semua field wajib diisi dengan benar." };
     }
     
-    const { id, food_name, sugar_g, age_at_input, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
+    // `age_at_input` tidak lagi diambil dari form
+    const { id, food_name, sugar_g, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
     
+    // Hitung usia di server
+    const age_at_input = calculateAge(userProfile.date_of_birth);
+
     const combinedDateTime = new Date(`${entry_date}T${entry_time}`);
     if (isNaN(combinedDateTime.getTime())) {
       return { error: 'Format tanggal atau waktu tidak valid.' };
@@ -234,7 +270,7 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
       .update({ 
         food_name, 
         sugar_g, 
-        age_at_input,
+        age_at_input, // Gunakan usia yang dihitung di server
         condition,
         status,
         created_at: combinedDateTime.toISOString(),
@@ -242,7 +278,7 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
         activity: activity || null,
       })
       .eq('id', id)
-      .eq('user_id', user.id);
+      .eq('user_id', userProfile.id);
   
     if (error) {
       console.error("Error updating entry:", error);
@@ -251,8 +287,9 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
   
     revalidatePath('/tracker');
     return { success: 'Data berhasil diperbarui!' };
-  }
+}
 
+// ... (fungsi deleteTrackerEntry tetap sama)
 export async function deleteTrackerEntry(id: string): Promise<FormState> {
   const supabase = await createClient();
   const session = await auth();

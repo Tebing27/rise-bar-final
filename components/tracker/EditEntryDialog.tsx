@@ -3,118 +3,142 @@
 
 import { useState, useEffect, useActionState, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { updateTrackerEntry, searchFoods, type FoodItem, type GlucoseEntry, type FormState } from '@/lib/actions/trackerActions';
+// --- PERBAIKAN: Impor fungsi baru ---
+import { updateTrackerEntry, searchFoods, getFoodsByNames, type FoodItem, type GlucoseEntry, type FormState } from '@/lib/actions/trackerActions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Pencil, Loader2 } from 'lucide-react';
+import { Pencil, Loader2, XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Komponen SelectedFoodItem (tetap sama)
+const SelectedFoodItem = ({ food, onRemove }: { food: FoodItem, onRemove: (id: string) => void }) => (
+  <div className="flex items-center justify-between p-2 bg-secondary/10 rounded-md">
+    <div className="flex flex-col">
+      <span className="text-sm font-medium text-foreground">{food.name}</span>
+      <span className="text-xs text-muted-foreground">
+        {food.quantity} porsi x {food.sugar_g.toFixed(1)} g = <strong>{(food.sugar_g * food.quantity).toFixed(1)} g</strong>
+      </span>
+    </div>
+    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(food.id)}>
+      <XIcon className="w-4 h-4" />
+    </Button>
+  </div>
+);
+
+// Komponen SubmitButton (tetap sama)
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="bg-green-600 hover:bg-green-700">
       {pending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menyimpan...</> : 'Simpan Perubahan'}
     </Button>
   );
 }
 
-const parseFoodName = (name: string): FoodItem[] => {
+// Fungsi parseInitialFoodNames (tetap sama)
+const parseInitialFoodNames = (name: string): Partial<FoodItem>[] => {
   if (!name) return [];
-  return name.split(', ').map((foodString, index) => {
+  return name.split(', ').map((foodString) => {
     const match = foodString.match(/(.+) \((\d+)x\)$/);
     if (match) {
-      return { id: `${match[1]}-${index}`, name: match[1], quantity: parseInt(match[2], 10), sugar_g: 0 };
+      return { name: match[1], quantity: parseInt(match[2], 10) };
     }
-    return { id: `${foodString}-${index}`, name: foodString, quantity: 1, sugar_g: 0 };
+    return { name: foodString, quantity: 1 };
   });
 };
 
 
 export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
   const [open, setOpen] = useState(false);
+  // ... (state lainnya tetap sama)
   const initialState: FormState = { success: undefined, error: undefined };
-
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
   const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
   const [totalSugar, setTotalSugar] = useState(entry.sugar_g);
-  
   const [entryDate, setEntryDate] = useState('');
   const [entryTime, setEntryTime] = useState('');
 
-  const hasModifiedFoods = useRef(false);
-
+  // --- PERBAIKAN LOGIKA UTAMA DI SINI ---
   useEffect(() => {
     if (open) {
       const localDate = new Date(entry.created_at);
-      const date = [
-        localDate.getFullYear(),
-        ('0' + (localDate.getMonth() + 1)).slice(-2),
-        ('0' + localDate.getDate()).slice(-2)
-      ].join('-');
-      const time = [
-        ('0' + localDate.getHours()).slice(-2),
-        ('0' + localDate.getMinutes()).slice(-2)
-      ].join(':');
-
+      const date = [localDate.getFullYear(), ('0' + (localDate.getMonth() + 1)).slice(-2), ('0' + localDate.getDate()).slice(-2)].join('-');
+      const time = [('0' + localDate.getHours()).slice(-2), ('0' + localDate.getMinutes()).slice(-2)].join(':');
       setEntryDate(date);
       setEntryTime(time);
 
-      setSelectedFoods(parseFoodName(entry.food_name));
+      const initialFoods = parseInitialFoodNames(entry.food_name);
+      const foodNames = initialFoods.map(f => f.name!);
+
+      if (foodNames.length > 0) {
+        // Gunakan fungsi baru untuk mendapatkan data lengkap
+        getFoodsByNames(foodNames).then(fullFoodData => {
+          const populatedFoods = initialFoods.map((initialFood, index) => {
+            const foundData = fullFoodData.find(d => d.name === initialFood.name);
+            return {
+              id: foundData?.id || `${initialFood.name}-${index}`,
+              name: initialFood.name!,
+              quantity: initialFood.quantity!,
+              // Pastikan nilai gula diambil dari data yang benar
+              sugar_g: foundData?.sugar_g || 0,
+            };
+          });
+          setSelectedFoods(populatedFoods);
+        });
+      } else {
+        setSelectedFoods([]);
+      }
       setTotalSugar(entry.sugar_g);
-      hasModifiedFoods.current = false;
     }
   }, [open, entry]);
-  
+
+  // ... (sisa kode komponen tetap sama)
+  useEffect(() => {
+    const newTotal = selectedFoods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);
+    setTotalSugar(newTotal);
+  }, [selectedFoods]);
+
   useEffect(() => {
     if (query.length < 2) {
       setSearchResults([]);
       return;
     }
     const debounceTimer = setTimeout(() => {
-        searchFoods(query).then(setSearchResults);
+      searchFoods(query).then(setSearchResults);
     }, 300);
     return () => clearTimeout(debounceTimer);
   }, [query]);
 
-  useEffect(() => {
-    if (hasModifiedFoods.current) {
-      const newTotal = selectedFoods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);
-      setTotalSugar(newTotal);
-    }
-  }, [selectedFoods]);
-
   const addFoodToSelection = (food: FoodItem) => {
-    hasModifiedFoods.current = true;
     setSelectedFoods(prevFoods => {
-        const existingFood = prevFoods.find(f => f.name === food.name);
-        if (existingFood) {
-          return prevFoods.map(f => 
-            f.name === food.name ? { ...f, quantity: f.quantity + 1, sugar_g: food.sugar_g } : f
-          );
-        }
-        return [...prevFoods, { ...food, id: `${food.name}-${Date.now()}`, quantity: 1 }];
-      });
+      const existingFood = prevFoods.find(f => f.name === food.name);
+      if (existingFood) {
+        return prevFoods.map(f => 
+          f.name === food.name ? { ...f, quantity: f.quantity + 1 } : f
+        );
+      }
+      return [...prevFoods, { ...food, id: food.id || `${food.name}-${Date.now()}`, quantity: 1 }];
+    });
     setQuery('');
     setSearchResults([]);
   };
 
   const removeFoodFromSelection = (foodId: string) => {
-    hasModifiedFoods.current = true;
     setSelectedFoods(prevFoods => {
-        const foodToRemove = prevFoods.find(f => f.id === foodId);
-        if (foodToRemove && foodToRemove.quantity > 1) {
-            return prevFoods.map(f =>
-                f.id === foodId ? { ...f, quantity: f.quantity - 1 } : f
-            );
-        }
-        return prevFoods.filter(food => food.id !== foodId);
+      const foodToRemove = prevFoods.find(f => f.id === foodId);
+      if (foodToRemove && foodToRemove.quantity > 1) {
+        return prevFoods.map(f =>
+          f.id === foodId ? { ...f, quantity: f.quantity - 1 } : f
+        );
+      }
+      return prevFoods.filter(food => food.id !== foodId);
     });
   };
-
+  
   const clientAction = async (prevState: FormState | null, formData: FormData) => {
     const updatedFormData = new FormData();
     for (const [key, value] of formData.entries()) {
@@ -143,9 +167,8 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pencil className="w-3 h-3 mr-1" />
-          Edit
+        <Button variant="ghost" size="icon">
+          <Pencil className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
@@ -156,21 +179,21 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
           <input type="hidden" name="id" value={entry.id} />
           
           <div className="relative">
-            <Label htmlFor="food_search_edit">Cari & Tambah Makanan</Label>
+            <Label htmlFor="food_search_edit" className='mb-4'>Cari & Tambah Makanan</Label>
             <Input
               id="food_search_edit"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ketik nama makanan untuk menambah/mengganti..."
+              placeholder="Ketik nama makanan..."
               autoComplete="off"
             />
             {searchResults.length > 0 && (
-              <ul className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
+              <ul className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map((food) => (
                   <li
                     key={food.id}
                     onClick={() => addFoodToSelection(food)}
-                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    className="p-2 hover:bg-muted cursor-pointer text-sm"
                   >
                     {food.name}
                   </li>
@@ -182,42 +205,34 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
           <div>
             <Label>Makanan yang Dicatat</Label>
             {selectedFoods.length > 0 ? (
-              <div className="mt-1 space-y-1 p-2 border rounded-md bg-gray-50 max-h-32 overflow-y-auto">
+              <div className="mt-2 space-y-2 p-3 border rounded-md max-h-40 overflow-y-auto">
                 {selectedFoods.map(food => (
-                  <div key={food.id} className="flex justify-between items-center text-sm">
-                    <span>
-                      {food.name}
-                      {food.quantity > 1 && <span className="text-gray-500 font-semibold"> ({food.quantity}x)</span>}
-                    </span>
-                    <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => removeFoodFromSelection(food.id!)}>&times;</Button>
-                  </div>
+                  <SelectedFoodItem key={food.id} food={food} onRemove={removeFoodFromSelection} />
                 ))}
               </div>
-            ) : <p className="text-sm text-gray-500 mt-1">Pilih makanan di atas.</p>}
+            ) : <p className="text-sm text-muted-foreground mt-2">Pilih makanan di atas.</p>}
           </div>
           
           <div>
-              <Label htmlFor="sugar_g_edit">Total Gula (g)</Label>
-              <Input id="sugar_g_edit" name="sugar_g" type="number" step="0.1" value={totalSugar.toFixed(1)} readOnly className="bg-gray-100" />
+              <Label htmlFor="sugar_g_edit" className='mb-2'>Total Gula (g)</Label>
+              <Input id="sugar_g_edit" name="sugar_g" type="number" step="0.1" value={totalSugar.toFixed(1)} readOnly className="bg-muted mt-1" />
           </div>
           
-          {/* INPUT USIA DIHAPUS DARI SINI */}
-
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="entry_date_edit">Tanggal</Label>
-              <Input id="entry_date_edit" name="entry_date" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} required />
+              <Label htmlFor="entry_date_edit" className='mb-2'>Tanggal</Label>
+              <Input id="entry_date_edit" name="entry_date" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} required className="mt-1"/>
             </div>
             <div>
-              <Label htmlFor="entry_time_edit">Waktu</Label>
-              <Input id="entry_time_edit" name="entry_time" type="time" value={entryTime} onChange={(e) => setEntryTime(e.target.value)} required />
+              <Label htmlFor="entry_time_edit" className='mb-2'>Waktu</Label>
+              <Input id="entry_time_edit" name="entry_time" type="time" value={entryTime} onChange={(e) => setEntryTime(e.target.value)} required className="mt-1"/>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="condition_edit">Kondisi</Label>
+            <Label htmlFor="condition_edit" className='mb-2'>Kondisi</Label>
             <Select name="condition" defaultValue={entry.condition}>
-              <SelectTrigger id="condition_edit">
+              <SelectTrigger id="condition_edit" className="mt-1">
                 <SelectValue placeholder="Pilih kondisi" />
               </SelectTrigger>
               <SelectContent>
@@ -228,26 +243,24 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
             </Select>
           </div>
           
-          {/* Input untuk Mood dan Aktivitas */}
           <div>
-            <Label htmlFor="mood_edit">Perasaan Anda</Label>
+            <Label htmlFor="mood_edit" className='mb-2'>Perasaan Anda</Label>
             <Select name="mood" defaultValue={entry.mood || ''}>
-              <SelectTrigger id="mood_edit">
+              <SelectTrigger id="mood_edit" className="mt-1">
                 <SelectValue placeholder="Pilih mood (opsional)..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Senang">😊 Senang</SelectItem>
                 <SelectItem value="Biasa">😐 Biasa</SelectItem>
-                <SelectItem value="Stres"> stressful Stres</SelectItem>
+                <SelectItem value="Stres">😩 Stres</SelectItem>
                 <SelectItem value="Lelah">😴 Lelah</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="activity_edit">Aktivitas Fisik</Label>
-            <Input id="activity_edit" name="activity" defaultValue={entry.activity || ''} placeholder="cth: Jalan santai 30 menit" />
+            <Label htmlFor="activity_edit" className='mb-2'>Aktivitas Fisik</Label>
+            <Input id="activity_edit" name="activity" defaultValue={entry.activity || ''} placeholder="cth: Jalan santai 30 menit" className="mt-1" />
           </div>
-
 
           <DialogFooter>
             <DialogClose asChild>

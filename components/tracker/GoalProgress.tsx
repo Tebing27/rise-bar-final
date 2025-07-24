@@ -2,7 +2,7 @@
 import { getActiveUserGoals, type UserGoal } from '@/lib/actions/goalActions';
 import { type GlucoseEntry } from '@/lib/actions/trackerActions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Target } from 'lucide-react';
+import { Target, Trophy } from 'lucide-react';
 
 // Fungsi helper untuk menghitung statistik dari entri
 function calculateStats(entries: GlucoseEntry[]) {
@@ -23,9 +23,9 @@ export async function GoalProgress({ entries }: { entries: GlucoseEntry[] }) {
 
   if (goals.length === 0) {
     return (
-        <Card>
+        <Card className="shadow-sm hover:shadow-md transition-shadow lg:col-span-2 h-full flex flex-col justify-center mt-5">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" /> Target & Progress</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" /> Progres Target</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-muted-foreground">Anda belum mengatur target. Atur target Anda di bawah untuk memulai!</p>
@@ -35,9 +35,9 @@ export async function GoalProgress({ entries }: { entries: GlucoseEntry[] }) {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm hover:shadow-md transition-shadow lg:col-span-2 mt-5">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" /> Target & Progress</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" /> Progres Target Anda</CardTitle>
         <CardDescription>Lihat progress Anda terhadap target yang telah ditetapkan.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -49,8 +49,6 @@ export async function GoalProgress({ entries }: { entries: GlucoseEntry[] }) {
             
             if (goal.target_type === 'average_glucose') {
                 currentValue = stats.average;
-                // Progress: seberapa dekat nilai saat ini dengan target, dari 0.
-                // Jika sudah mencapai atau lebih baik (lebih rendah), progress 100%.
                 progress = currentValue > 0 ? Math.min(100, (goal.target_value / currentValue) * 100) : 0;
                 label = 'Rata-rata Gula';
             } else if (goal.target_type === 'max_glucose') {
@@ -59,15 +57,20 @@ export async function GoalProgress({ entries }: { entries: GlucoseEntry[] }) {
                 label = 'Gula Maksimal';
             }
 
+            const isAchieved = currentValue > 0 && currentValue <= goal.target_value;
+
             return (
                 <div key={goal.id}>
                     <div className="flex justify-between items-baseline mb-1">
-                        <span className="text-sm font-medium">{label}</span>
+                        <span className="text-sm font-medium flex items-center gap-2">
+                           {isAchieved && <Trophy className="w-4 h-4 text-yellow-500" />}
+                           {label}
+                        </span>
                         <span className="text-xs text-muted-foreground">Target: &lt; {goal.target_value} {unit}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2.5">
                         <div 
-                            className={`h-2.5 rounded-full ${progress >= 100 ? 'bg-green-500' : 'bg-primary'}`}
+                            className={`h-2.5 rounded-full transition-all duration-500 ${isAchieved ? 'bg-green-500' : 'bg-primary'}`}
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>

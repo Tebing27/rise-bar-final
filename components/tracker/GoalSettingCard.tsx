@@ -30,7 +30,7 @@ export function GoalSettingCard() {
   }, [state]);
 
   return (
-    <Card>
+    <Card className='mt-5'>
       <CardHeader>
         <CardTitle>Atur Target Baru</CardTitle>
         <CardDescription>Menetapkan target membantu Anda tetap fokus pada tujuan kesehatan.</CardDescription>
@@ -38,7 +38,7 @@ export function GoalSettingCard() {
       <CardContent>
         <form action={formAction} className="space-y-4">
           <div>
-            <Label htmlFor="target_type">Jenis Target</Label>
+            <Label htmlFor="target_type" className='mb-3'>Jenis Target</Label>
             <Select name="target_type" defaultValue="average_glucose">
               <SelectTrigger>
                 <SelectValue placeholder="Pilih jenis target" />
@@ -50,7 +50,7 @@ export function GoalSettingCard() {
             </Select>
           </div>
           <div>
-            <Label htmlFor="target_value">Nilai Target (mg/dL)</Label>
+            <Label htmlFor="target_value" className='mb-3'>Nilai Target (mg/dL)</Label>
             <Input id="target_value" name="target_value" type="number" placeholder="Contoh: 140" required />
             {state?.error && <p className="text-red-500 text-xs mt-1">{state.error}</p>}
           </div>

@@ -17,30 +17,35 @@ export function TrackerActions({ entries }: { entries: GlucoseEntry[] }) {
     const doc = new jsPDF();
     doc.text("Laporan Gula Darah", 14, 16);
 
+    // --- PERBAIKAN DI SINI ---
     autoTable(doc, {
       startY: 22,
-      head: [['Tanggal', 'Waktu', 'Makanan', 'Gula (mg/dL)', 'Usia', 'Kondisi', 'Status']],
+      // Menyesuaikan header PDF agar sama dengan tabel
+      head: [['Tanggal', 'Waktu', 'Makanan', 'Gula (mg/dL)', 'Status', 'Mood', 'Aktivitas']],
       body: entries.map(e => [
         new Date(e.created_at).toLocaleDateString('id-ID'),
         new Date(e.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-        e.food_name,
+        // Membuat daftar makanan menjadi beberapa baris di PDF
+        e.food_name.split(', ').map((food, index) => `${index + 1}. ${food}`).join('\n'),
         e.sugar_g.toFixed(0),
-        e.age_at_input || '-',
-        e.condition,
-        e.status
+        e.status,
+        e.mood || '-', // Menambahkan data Mood
+        e.activity || '-' // Menambahkan data Aktivitas
       ]),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [38, 145, 131] }, // Warna Teal (Primary)
+      headStyles: { fillColor: [38, 145, 131] }, 
     });
+    // -------------------------
 
     doc.save(`laporan-gula-darah-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
-    <div className="flex justify-end mb-4">
+    <div className="flex justify-end">
       <Button onClick={handleExportPDF} variant="outline" size="sm">
         <Download className="w-4 h-4 mr-2" />
-        Export Laporan (PDF)
+        Export
+        <span className="hidden sm:inline ml-1">Laporan (PDF)</span>
       </Button>
     </div>
   );
