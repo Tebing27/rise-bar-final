@@ -3,47 +3,50 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Utensils, Mic, MessageSquareQuote, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Home, Users, Utensils, FileText, Settings, LogOut } from 'lucide-react';
+import { LogoutButton } from '../auth/LogoutButton';
 
-const navLinks = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/users', label: 'Pengguna', icon: Users },
-  { href: '/admin/foods', label: 'Makanan', icon: Utensils },
-  { href: '/admin/blogs', label: 'Blog', icon: FileText },
-  { href: '/admin/recommendations', label: 'Rekomendasi', icon: MessageSquareQuote },
-  { href: '/admin/content', label: 'Konten', icon: Mic },
+const adminNavItems = [
+  { title: "Dashboard", href: "/admin", icon: <Home className="h-5 w-5" /> },
+  { title: "Pengguna", href: "/admin/users", icon: <Users className="h-5 w-5" /> },
+  { title: "Makanan", href: "/admin/foods", icon: <Utensils className="h-5 w-5" /> },
+  { title: "Blog", href: "/admin/blogs", icon: <FileText className="h-5 w-5" /> },
+  { title: "Rekomendasi", href: "/admin/recommendations", icon: <Settings className="h-5 w-5" /> },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-64 flex-col border-r bg-card sm:flex">
-      <nav className="flex flex-col items-start gap-2 px-4 py-4">
-        <Link
-          href="/admin"
-          className="group flex h-9 w-full items-center justify-start rounded-lg px-3 mb-4"
-        >
-          <span className="text-lg font-bold text-primary">Admin Panel</span>
-        </Link>
-        {navLinks.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'flex w-full items-center justify-start gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                isActive && 'bg-primary/10 text-primary'
-              )}
-            >
-              <link.icon className="h-4 w-4" />
-              <span>{link.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+    <aside className="hidden border-r bg-background lg:block w-64">
+      <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="flex h-16 items-center border-b px-6">
+          <Link href="/admin" className="flex items-center gap-2 font-semibold">
+            <span className="text-lg">Admin Panel</span>
+          </Link>
+        </div>
+        <div className="flex-1 overflow-auto py-2">
+          <nav className="grid items-start px-4 text-sm font-medium">
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                  pathname === item.href && "bg-muted text-primary"
+                )}
+              >
+                {item.icon}
+                {item.title}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="mt-auto p-4">
+            <LogoutButton />
+        </div>
+      </div>
     </aside>
   );
 }

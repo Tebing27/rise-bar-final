@@ -1,75 +1,36 @@
 // components/tracker/StatusHighlightCard.tsx
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, CheckCircle2 } from 'lucide-react';
-import type { GlucoseEntry } from '@/lib/actions/trackerActions';
+import { type GlucoseEntry } from '@/lib/actions/trackerActions';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, TrendingDown, CheckCircle } from 'lucide-react';
 
+// ✅ PERBAIKAN: Tambahkan interface untuk props
 interface StatusHighlightCardProps {
-  lastEntry: GlucoseEntry | undefined;
+  entries: GlucoseEntry[];
 }
 
-export function StatusHighlightCard({ lastEntry }: StatusHighlightCardProps) {
-  if (!lastEntry) {
-    return (
-      <Card className="bg-primary/5 border-primary/20">
-        <CardHeader>
-          <CardTitle>Selamat Datang!</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Anda belum memiliki catatan. Mulai lacak konsumsi makanan Anda untuk melihat analisis kesehatan.
-          </p>
-        </CardContent>
-      </Card>
-    );
+export function StatusHighlightCard({ entries }: StatusHighlightCardProps) {
+  if (!entries || entries.length === 0) {
+    return null;
   }
 
-  const statusConfig = {
-    Tinggi: {
-      Icon: TrendingUp,
-      color: 'text-destructive',
-      bgColor: 'bg-destructive/5',
-      borderColor: 'border-destructive/20',
-      message: 'Gula Darah Terakhir: Tinggi',
-    },
-    Normal: {
-      Icon: CheckCircle2,
-      color: 'text-green-600',
-      bgColor: 'bg-green-500/5',
-      borderColor: 'border-green-500/20',
-      message: 'Gula Darah Terakhir: Normal',
-    },
-    Rendah: {
-      Icon: TrendingDown,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-500/5',
-      borderColor: 'border-blue-500/20',
-      message: 'Gula Darah Terakhir: Rendah',
-    },
-  };
-
-  const config = statusConfig[lastEntry.status];
+  const latestEntry = entries[0];
+  const average = entries.reduce((sum, entry) => sum + entry.sugar_g, 0) / entries.length;
 
   return (
-    <Card className={cn(
-        "transition-all gap-1", // <-- UBAH gap-6 (default) menjadi gap-1
-        config.bgColor, 
-        config.borderColor
-    )}>
-      {/* --- UBAH className DI BAWAH INI --- */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0"> {/* <-- UBAH pb-2 menjadi pb-0 */}
-        <CardTitle className="text-sm font-medium">{config.message}</CardTitle>
-        <config.Icon className={cn("h-5 w-5", config.color)} />
+    <Card>
+      <CardHeader>
+        <CardTitle>Sorotan Terkini</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold">
-          {lastEntry.sugar_g.toFixed(0)} <span className="text-lg text-muted-foreground">mg/dL</span>
+      <CardContent className="space-y-4">
+        <div>
+          <p className="text-sm text-muted-foreground">Catatan Terakhir</p>
+          <p className="text-2xl font-bold">{latestEntry.sugar_g.toFixed(0)} mg/dL</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Dicatat pada {new Date(lastEntry.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-        </p>
+        <div>
+          <p className="text-sm text-muted-foreground">Rata-rata</p>
+          <p className="text-2xl font-bold">{average.toFixed(0)} mg/dL</p>
+        </div>
       </CardContent>
     </Card>
   );
-
 }

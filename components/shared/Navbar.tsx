@@ -11,12 +11,18 @@ import { usePathname } from 'next/navigation';
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const userRole = session?.user?.role;
 
   const navLinks = [
     { href: '/', label: 'Beranda' },
     { href: '/blog', label: 'Blog' },
     { href: '/#fitur', label: 'Fitur' },
   ];
+
+  // Jangan tampilkan Navbar sama sekali jika sedang berada di area admin
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 w-full bg-background/80 backdrop-blur-sm border-b z-50">
@@ -42,6 +48,8 @@ export function Navbar() {
             ))}
           </div>
           <div className="flex items-center space-x-2">
+            {status === 'loading' && <div className="w-24 h-8 bg-muted rounded-md animate-pulse" />}
+            
             {status === 'unauthenticated' && (
               <>
                 <Link href="/login">
@@ -52,17 +60,12 @@ export function Navbar() {
                 </Link>
               </>
             )}
+
             {status === 'authenticated' && (
               <>
-                <Link href="/tracker">
+                {/* Tombol Dashboard akan mengarah ke tempat yang benar berdasarkan role */}
+                <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
                   <Button size="sm" variant="ghost">Dashboard</Button>
-                </Link>
-                <Link href="/reports">
-                  <Button size="sm" variant="ghost">Laporan</Button>
-                </Link>
-                {/* TAUTAN BARU DITAMBAHKAN DI SINI */}
-                <Link href="/profile">
-                  <Button size="sm" variant="ghost">Profil</Button>
                 </Link>
                 <LogoutButton />
               </>

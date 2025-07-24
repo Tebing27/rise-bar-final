@@ -1,19 +1,28 @@
 // app/admin/layout.tsx
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { Toaster } from '@/components/ui/sonner';
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
+  // Proteksi tambahan jika middleware gagal
+  if (session?.user?.role !== 'admin') {
+    redirect('/login');
+  }
+
   return (
-    <div className="min-h-screen w-full bg-muted/40">
+    <div className="flex min-h-screen w-full bg-muted/40">
       <AdminSidebar />
-      <main className="flex flex-col sm:gap-4 sm:py-4 sm:pl-64">
-        <Toaster position="top-center" richColors />
-        {children}
-      </main>
+      <div className="flex flex-1 flex-col">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
