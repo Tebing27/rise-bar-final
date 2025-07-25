@@ -1,4 +1,4 @@
-/* app/globals.css (Versi Final yang Sudah Diperbaiki) */
+/* app/globals.css - Modern Design Update */
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -39,7 +39,7 @@
   --color-brand: hsl(var(--brand));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));                  /* <-- TAMBAHKAN INI */
+  --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -49,82 +49,97 @@
 
 @layer base {
   :root {
-    --radius: 0.75rem;
+    --radius: 1rem;
     
-    /* === WARNA INTI PROFESIONAL BARU === */
-    --background: 30 50% 98%;      /* Krem Hangat */
-    --foreground: 20 14.3% 4.1%;    /* Abu-abu Gelap */
+    /* === MODERN COLOR PALETTE === */
+    --background: 240 10% 98%;           /* Clean white with subtle warmth */
+    --foreground: 240 10% 8%;            /* Deep charcoal */
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;                  /* Pastikan baris ini ada */
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 173 95% 30%;       /* Teal Gelap */
+    --card-foreground: 240 10% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 8%;
+    --primary: 262 83% 58%;               /* Modern purple */
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 27.9% 31.4%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 173 95% 42%;        /* Teal Terang untuk hover */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 262 83% 58%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 173 95% 30%;
-    --brand: 173 95% 30%;         /* Warna brand disamakan dengan primary */
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 262 83% 58%;
+    --brand: 262 83% 58%;
 
-    /* === PALET LAIN (TIDAK DIUBAH) === */
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    /* === GRADIENT VARIABLES === */
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(262 83% 68%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(240 5% 96%) 0%, hsl(240 5% 98%) 100%);
+    --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
+
+    /* === CHART COLORS === */
+    --chart-1: 262 83% 58%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    /* === SIDEBAR COLORS === */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 240 5% 15%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 262 83% 58%;
   }
 
   .dark {
-    /* === WARNA INTI PROFESIONAL BARU (MODE GELAP) === */
-    --background: 20 14.3% 4.1%;    /* Abu-abu Sangat Gelap */
-    --foreground: 0 0% 98%;         /* Putih Gading */
-    --card: 24 9.8% 10%;
+    /* === DARK MODE COLORS === */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: 173 95% 42%;       /* Teal Terang */
-    --primary-foreground: 20 14.3% 4.1%;
-    --secondary: 215 27.9% 31.4%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 83% 68%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 24 9.8% 10%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 215 27.9% 31.4%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 16%;
     --accent-foreground: 0 0% 98%;
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: 215 27.9% 15%;
-    --input: 215 27.9% 15%;
-    --ring: 173 95% 42%;
-    --brand: 173 95% 42%;
-    
-    /* === PALET LAIN (TIDAK DIUBAH) === */
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 86% 97%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 262 83% 68%;
+    --brand: 262 83% 68%;
+
+    /* === DARK GRADIENTS === */
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 68%) 0%, hsl(262 83% 78%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(240 4% 16%) 0%, hsl(240 4% 18%) 100%);
+    --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+
+    /* === DARK CHART COLORS === */
+    --chart-1: 262 83% 68%;
+    --chart-2: 173 58% 49%;
+    --chart-3: 197 37% 34%;
+    --chart-4: 43 74% 76%;
+    --chart-5: 27 87% 77%;
+
+    /* === DARK SIDEBAR === */
+    --sidebar: 240 10% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 262 83% 68%;
+    --sidebar-primary-foreground: 240 10% 4%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 262 83% 68%;
   }
 }
 
@@ -132,10 +147,140 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
   .card {
-    @apply border rounded-xl shadow-sm;
+    @apply border rounded-2xl shadow-sm backdrop-blur-sm;
+    background: var(--gradient-card);
+  }
+
+  /* === MODERN GLASS EFFECT === */
+  .glass {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-md bg-black/10 border border-white/10;
+  }
+
+  /* === MODERN BUTTON STYLES === */
+  .btn-gradient {
+    background: var(--gradient-primary);
+    @apply text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* === MODERN ANIMATIONS === */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* === MODERN SCROLLBAR === */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+  }
+
+  /* === MODERN FOCUS STYLES === */
+  .focus-modern {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200;
+  }
+
+  /* === MODERN CARD HOVER EFFECTS === */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* === MODERN TYPOGRAPHY === */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === MODERN SPACING === */
+  .section-padding {
+    @apply py-16 px-4 sm:py-24 sm:px-6 lg:px-8;
+  }
+
+  .container-modern {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* === MODERN COMPONENT OVERRIDES === */
+@layer components {
+  .modern-input {
+    @apply bg-white/50 border-2 border-transparent focus:border-primary focus:bg-white transition-all duration-200 rounded-xl px-4 py-3;
+  }
+
+  .modern-button {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .modern-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300;
   }
 }
