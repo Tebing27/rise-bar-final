@@ -1,17 +1,21 @@
 // components/admin/PostForm.tsx
 'use client';
 
-import { useActionState } from 'react';
-import { useState } from 'react';
-import { useSession } from 'next-auth/react'; // <-- 1. Impor useSession
-import type { FormState } from '@/lib/actions/trackerActions';
+import { useActionState, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import type { BlogFormState } from '@/lib/actions/blogActions';
 import { upsertPost } from '@/lib/actions/blogActions';
 import { PostFormButton } from './PostFormButton';
 import Image from 'next/image';
 import { CldUploadWidget, type CloudinaryUploadWidgetResults } from 'next-cloudinary';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import Link from 'next/link'; // <-- Impor Link
+import { Button } from '@/components/ui/button'; // <-- Impor Button
 
-// Tipe Post tidak perlu diubah
 interface Post {
   id?: string;
   title?: string;
@@ -23,105 +27,111 @@ interface Post {
   is_popular?: boolean;
 }
 
-// Hapus 'authors' dari props karena tidak lagi digunakan
 export function PostForm({ post, tags }: { post?: Post | null; tags?: string; }) {
-  const { data: session } = useSession(); // <-- 2. Dapatkan data sesi
+  const { data: session } = useSession();
   const initialState: BlogFormState = { success: false };
   const [state, formAction] = useActionState(upsertPost, initialState);
   const [imageUrl, setImageUrl] = useState(post?.image_url || '');
 
-  // Ambil nama penulis dari sesi, berikan fallback jika tidak ada
   const authorName = session?.user?.name ?? 'Admin';
 
   return (
-    <form action={formAction} className="space-y-6">
-      {post?.id && <input type="hidden" name="id" value={post.id} />}
-      
-      {/* 3. Tambahkan input tersembunyi untuk nama penulis */}
-      <input type="hidden" name="author_name" value={authorName} />
+    <form action={formAction}>
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-8">
+        {/* Kolom Kiri */}
+        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detail Artikel</CardTitle>
+              <CardDescription>Isi judul, slug, dan konten utama artikel.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              {post?.id && <input type="hidden" name="id" value={post.id} />}
+              <input type="hidden" name="author_name" value={authorName} />
+              <input type="hidden" name="image_url" value={imageUrl} />
 
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Judul Artikel</label>
-        <input type="text" name="title" id="title" defaultValue={post?.title} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-        {state.errors?.title && <p className="text-red-500 text-xs mt-1">{state.errors.title[0]}</p>}
-      </div>
+              <div className="grid gap-3">
+                <Label htmlFor="title">Judul Artikel</Label>
+                <Input id="title" name="title" type="text" defaultValue={post?.title} required />
+                {state.errors?.title && <p className="text-destructive text-xs">{state.errors.title[0]}</p>}
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="slug">Slug (URL)</Label>
+                <Input id="slug" name="slug" type="text" defaultValue={post?.slug} required />
+                {state.errors?.slug && <p className="text-destructive text-xs">{state.errors.slug[0]}</p>}
+              </div>
+              <div className="grid gap-3">
+                <Label>Penulis</Label>
+                <Input type="text" value={authorName} readOnly className="bg-muted" />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="content">Konten</Label>
+                <Textarea id="content" name="content" defaultValue={post?.content} className="min-h-32" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div>
-        <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug (URL)</label>
-        <input type="text" name="slug" id="slug" defaultValue={post?.slug} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-        {state.errors?.slug && <p className="text-red-500 text-xs mt-1">{state.errors.slug[0]}</p>}
-      </div>
-      
-      {/* 4. Hapus dropdown penulis dan ganti dengan teks biasa */}
-      <div>
-        <span className="block text-sm font-medium text-gray-700">Nama Penulis</span>
-        <p className="mt-1 text-sm text-gray-900 p-2 bg-gray-100 rounded-md">{authorName}</p>
-      </div>
+        {/* Kolom Kanan */}
+        <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gambar Utama</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CldUploadWidget
+                signatureEndpoint="/api/sign-cloudinary-params"
+                onSuccess={(result: CloudinaryUploadWidgetResults) => {
+                  if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+                    setImageUrl(result.info.secure_url);
+                  }
+                }}
+              >
+                {({ open }) => (
+                  <button type="button" onClick={() => open()} className="w-full">
+                    {imageUrl ? (
+                        <Image src={imageUrl} alt="Preview" width={300} height={150} className="w-full h-auto rounded-md object-cover border" />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed p-8 text-center">
+                            <p className="text-sm text-muted-foreground">Klik untuk upload</p>
+                        </div>
+                    )}
+                  </button>
+                )}
+              </CldUploadWidget>
+            </CardContent>
+          </Card>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Gambar Utama</label>
-        <CldUploadWidget
-          signatureEndpoint="/api/sign-cloudinary-params"
-          onSuccess={(result: CloudinaryUploadWidgetResults) => {
-            if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
-              setImageUrl(result.info.secure_url);
-            }
-          }}
-        >
-          {({ open }) => (
-            <button
-              type="button"
-              onClick={() => open()}
-              className="mt-1 w-full rounded-md border-2 border-dashed border-gray-300 px-6 py-3 text-center text-sm text-gray-600 hover:border-gray-400"
-            >
-              Upload Gambar
-            </button>
-          )}
-        </CldUploadWidget>
-
-        <input type="hidden" name="image_url" value={imageUrl} />
-        
-        {imageUrl && (
-          <div className="mt-4">
-            <p className="text-sm text-gray-500 mb-2">Preview:</p>
-            <Image src={imageUrl} alt="Preview" width={200} height={100} className="rounded-md object-cover" />
+          <Card>
+            <CardHeader>
+              <CardTitle>Properti</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="tags">Tags (pisahkan dengan koma)</Label>
+                <Input id="tags" name="tags" type="text" defaultValue={tags} placeholder="diet, sehat, tips" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is_published">Publikasikan</Label>
+                <Switch id="is_published" name="is_published" defaultChecked={post?.is_published} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is_popular">Jadikan Populer</Label>
+                <Switch id="is_popular" name="is_popular" defaultChecked={post?.is_popular} />
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* ✅ PERUBAHAN DI SINI: Tombol Kembali dan Simpan disatukan */}
+          <div className="flex items-center justify-between">
+            <Link href="/admin/blogs">
+              <Button variant="secondary">Kembali</Button>
+            </Link>
+            <PostFormButton isNew={!post} />
           </div>
-        )}
+           {state.message && <p className="text-destructive text-sm">{state.message}</p>}
+        </div>
       </div>
-
-      <div>
-        <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
-          Tags (pisahkan dengan koma)
-        </label>
-        <input 
-          type="text" 
-          name="tags" 
-          id="tags" 
-          defaultValue={tags} // This correctly uses the tagsString
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
-          placeholder="contoh: diet, sehat, tips gula"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="content" className="block text-sm font-medium text-gray-700">Konten</label>
-        <textarea name="content" id="content" rows={10} defaultValue={post?.content} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
-      </div>
-
-      <div className="flex items-center">
-        <input id="is_published" name="is_published" type="checkbox" defaultChecked={post?.is_published} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-        <label htmlFor="is_published" className="ml-2 block text-sm text-gray-900">Publikasikan Artikel</label>
-      </div>
-      
-      <div className="flex items-center">
-        <input id="is_popular" name="is_popular" type="checkbox" defaultChecked={post?.is_popular} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-        <label htmlFor="is_popular" className="ml-2 block text-sm text-gray-900">Tampilkan di Halaman Utama</label>
-      </div>
-
-      <div className="flex justify-end">
-        <PostFormButton isNew={!post} />
-      </div>
-      {state.message && <p className="text-red-500 text-sm">{state.message}</p>}
     </form>
   );
 }

@@ -1,7 +1,7 @@
 // app/admin/recommendations/EditRecommendationDialog.tsx
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { upsertRecommendation, type Recommendation } from '@/lib/actions/recommendationActions';
 import { Button } from '@/components/ui/button';
@@ -65,23 +65,23 @@ export function EditRecommendationDialog({ recommendation }: { recommendation: R
             Ubah detail rekomendasi. Perubahan akan langsung terlihat oleh pengguna.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-4 pt-4">
           <input type="hidden" name="id" value={recommendation.id} />
           
-          <div>
-            <Label htmlFor="title">Judul Rekomendasi</Label>
-            <Input id="title" name="title" defaultValue={recommendation.title} required />
+          <div className="space-y-2">
+            <Label htmlFor="title-edit">Judul Rekomendasi</Label>
+            <Input id="title-edit" name="title" defaultValue={recommendation.title} required />
           </div>
 
-          <div>
-            <Label htmlFor="description">Deskripsi</Label>
-            <Textarea id="description" name="description" defaultValue={recommendation.description} rows={5} required />
+          <div className="space-y-2">
+            <Label htmlFor="description-edit">Deskripsi</Label>
+            <Textarea id="description-edit" name="description" defaultValue={recommendation.description} rows={4} required />
           </div>
 
-          <div>
-            <Label htmlFor="category">Kategori Status</Label>
+          <div className="space-y-2">
+            <Label htmlFor="category-edit">Kategori Status</Label>
             <Select name="category" defaultValue={recommendation.category} required>
-              <SelectTrigger>
+              <SelectTrigger id="category-edit">
                 <SelectValue placeholder="Pilih kategori status..." />
               </SelectTrigger>
               <SelectContent>
@@ -92,7 +92,7 @@ export function EditRecommendationDialog({ recommendation }: { recommendation: R
             </Select>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
             </DialogClose>

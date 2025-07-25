@@ -1,19 +1,28 @@
 // app/(auth)/login/page.tsx
 import { LoginForm } from '@/components/auth/LoginForm';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Login</CardTitle>
+          <CardDescription>
+            Masukkan email Anda untuk masuk ke akun Anda.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <LoginForm />
-        </div>
-      </div>
+          <div className="mt-4 text-center text-sm">
+            Belum punya akun?{' '}
+            <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+              Daftar di sini
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

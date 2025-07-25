@@ -5,10 +5,14 @@ import { DeleteFoodButton } from '@/components/admin/DeleteFoodButton';
 import { Toaster } from '@/components/ui/sonner';
 import { Search } from '@/components/admin/Search';
 import { Pagination } from '@/components/admin/Pagination';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-// Define the type for the page's props
 type AdminFoodsPageProps = {
   searchParams: Promise<{
     query?: string;
@@ -16,9 +20,7 @@ type AdminFoodsPageProps = {
   }>;
 };
 
-// Use the defined type in the function signature
 export default async function AdminFoodsPage({ searchParams }: AdminFoodsPageProps) {
-  // Await the searchParams to resolve the Promise
   const resolvedSearchParams = await searchParams;
   const searchQuery = resolvedSearchParams?.query || '';
   const currentPage = Number(resolvedSearchParams?.page) || 1;
@@ -28,57 +30,69 @@ export default async function AdminFoodsPage({ searchParams }: AdminFoodsPagePro
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="container mx-auto py-10 px-4">
-        <div className="flex justify-between items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Kelola Makanan</h1>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <CardTitle>Kelola Makanan</CardTitle>
+              <CardDescription>Tambah, edit, atau hapus data makanan untuk database.</CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <Search placeholder="Cari makanan..." />
+              <Link href="/admin/foods/new">
+                <Button className="w-full sm:w-auto">+ Tambah Makanan</Button>
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Search placeholder="Cari makanan..." />
-            <Link
-              href="/admin/foods/new"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
-            >
-              + Tambah Makanan
-            </Link>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama Makanan</TableHead>
+                  <TableHead>Gula (g)</TableHead>
+                  <TableHead><span className="sr-only">Aksi</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {foods && foods.map((food) => (
+                  <TableRow key={food.id}>
+                    <TableCell className="font-medium">{food.name}</TableCell>
+                    <TableCell>{food.sugar_g}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Link href={`/admin/foods/edit/${food.id}`}>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                          </Link>
+                          <DeleteFoodButton id={food.id} />
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!foods || foods.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center">
+                      Tidak ada data makanan yang cocok.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
-        </div>
-
-        <div className="border rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Nama Makanan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Kandungan Gula (g)</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="bg-background divide-y">
-              {foods && foods.map((food) => (
-                <tr key={food.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{food.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{food.sugar_g}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
-                    <Link href={`/admin/foods/edit/${food.id}`} className="text-primary hover:underline mr-4">
-                      Edit
-                    </Link>
-                    <DeleteFoodButton id={food.id} />
-                  </td>
-                </tr>
-              ))}
-              {(!foods || foods.length === 0) && (
-                <tr>
-                  <td colSpan={3} className="text-center py-8 text-muted-foreground">Tidak ada data makanan yang cocok.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          {totalPages > 0 && <Pagination totalPages={totalPages} />}
-        </div>
-      </div>
+          <div className="mt-6 flex justify-end">
+            {totalPages > 0 && <Pagination totalPages={totalPages} />}
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }

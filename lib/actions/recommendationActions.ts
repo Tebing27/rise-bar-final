@@ -23,8 +23,16 @@ const RecommendationSchema = z.object({
 });
 
 // Fungsi getRecommendations, upsertRecommendation, dan deleteRecommendation tidak perlu diubah
-export async function getRecommendations() {
-  const { data, error } = await supabaseAdmin.from('recommendations').select('*').order('created_at', { ascending: false });
+export async function getRecommendations(searchQuery?: string) {
+  const supabase = await createClient();
+  let query = supabase.from('recommendations').select('*').order('created_at', { ascending: false });
+
+  if (searchQuery) {
+    query = query.ilike('title', `%${searchQuery}%`);
+  }
+
+  const { data, error } = await query;
+  
   if (error) {
     console.error("Error fetching recommendations:", error);
     return [];

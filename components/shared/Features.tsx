@@ -1,125 +1,53 @@
-// components/shared/Features.tsx - Modern Features Section
-import { BarChart, ClipboardList, BrainCircuit, Shield, Zap, Users } from 'lucide-react';
+// components/home/Features.tsx
+import { BarChart, ClipboardList, BrainCircuit } from 'lucide-react';
 
 const features = [
   {
     name: 'Pencatatan Mudah',
-    description: 'Catat kadar gula darah, makanan, dan aktivitas Anda hanya dengan beberapa klik. Interface yang intuitif memudahkan penggunaan sehari-hari.',
+    description: 'Catat kadar gula darah, makanan, dan aktivitas Anda hanya dengan beberapa klik.',
     icon: ClipboardList,
-    color: 'from-blue-500 to-cyan-500',
   },
   {
     name: 'Visualisasi Data',
-    description: 'Lihat tren kesehatan Anda melalui grafik interaktif yang mudah dipahami. Dashboard yang informatif dan menarik secara visual.',
+    description: 'Lihat tren kesehatan Anda melalui grafik interaktif yang mudah dipahami.',
     icon: BarChart,
-    color: 'from-purple-500 to-pink-500',
   },
   {
     name: 'Analisis Cerdas',
-    description: 'Dapatkan wawasan dan rekomendasi berdasarkan data yang Anda masukkan untuk pengelolaan yang lebih baik dengan teknologi AI.',
+    description: 'Dapatkan wawasan dan rekomendasi berdasarkan data yang Anda masukkan untuk pengelolaan yang lebih baik.',
     icon: BrainCircuit,
-    color: 'from-green-500 to-emerald-500',
   },
-  {
-    name: 'Keamanan Data',
-    description: 'Data kesehatan Anda dilindungi dengan enkripsi tingkat enterprise. Privasi dan keamanan adalah prioritas utama kami.',
-    icon: Shield,
-    color: 'from-orange-500 to-red-500',
-  },
-  {
-    name: 'Performa Cepat',
-    description: 'Aplikasi yang responsif dan cepat. Akses data Anda kapan saja tanpa delay, bahkan dengan koneksi internet yang lambat.',
-    icon: Zap,
-    color: 'from-yellow-500 to-orange-500',
-  },
-  {
-    name: 'Komunitas Sehat',
-    description: 'Bergabung dengan komunitas pengguna yang saling mendukung dalam perjalanan menuju hidup yang lebih sehat.',
-    icon: Users,
-    color: 'from-indigo-500 to-purple-500',
-  },
-];
+]
 
 export function Features() {
   return (
-    <section id="fitur" className="section-padding bg-gradient-to-b from-background to-muted/20">
-      <div className="container-modern">
-        <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <BrainCircuit className="w-4 h-4" />
-            Fitur Unggulan
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Semua yang Anda Butuhkan untuk
-            <span className="text-gradient"> Hidup Sehat</span>
-          </h2>
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            Platform kami menyediakan alat-alat canggih dan mudah digunakan untuk membantu Anda memahami dan mengambil tindakan yang tepat dalam mengelola kesehatan.
+    <section id="fitur" className="bg-background py-20 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2 className="text-base font-semibold leading-7 text-primary">MANAJEMEN KESEHATAN</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Semua yang Anda butuhkan untuk mengontrol kesehatan Anda
+          </p>
+          <p className="mt-6 text-lg leading-8 text-foreground/60">
+            Platform kami menyediakan alat-alat canggih untuk membantu Anda memahami dan mengambil tindakan yang tepat.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={feature.name}
-              className="group modern-card card-hover animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Icon with Gradient Background */}
-              <div className="relative mb-6">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} p-0.5`}>
-                  <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
-                    <feature.icon className="w-8 h-8 text-gray-700" />
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+            {features.map((feature) => (
+              <div key={feature.name} className="relative pl-16">
+                <dt className="text-base font-semibold leading-7 text-foreground">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                    <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
-                </div>
-                {/* Glow Effect */}
-                <div className={`absolute inset-0 w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-300`} />
-              </div>
-
-              {/* Content */}
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-200">
                   {feature.name}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
+                </dt>
+                <dd className="mt-2 text-base leading-7 text-foreground/60">{feature.description}</dd>
               </div>
-
-              {/* Hover Effect Border */}
-              <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-primary/20 transition-colors duration-300" />
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-20 animate-fade-in">
-          <div className="inline-flex items-center gap-2 text-muted-foreground text-sm mb-4">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            Bergabung dengan ribuan pengguna yang sudah merasakan manfaatnya
-          </div>
-          <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 font-bold text-xs">✓</span>
-              </div>
-              <span>Gratis Selamanya</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-xs">✓</span>
-              </div>
-              <span>Data Aman</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 font-bold text-xs">✓</span>
-              </div>
-              <span>Support 24/7</span>
-            </div>
-          </div>
+            ))}
+          </dl>
         </div>
       </div>
     </section>
-  );
+  )
 }

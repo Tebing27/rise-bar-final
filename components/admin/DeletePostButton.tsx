@@ -3,31 +3,35 @@
 
 import { deletePost } from '@/lib/actions/blogActions';
 import { useTransition } from 'react';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 export function DeletePostButton({ postId }: { postId: string }) {
-  // useTransition untuk menangani state loading tanpa memblokir UI
   const [isPending, startTransition] = useTransition();
 
   const handleClick = () => {
-    // Tampilkan dialog konfirmasi
-    if (confirm('Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat dibatalkan.')) {
+    if (confirm('Apakah Anda yakin ingin menghapus artikel ini?')) {
       startTransition(async () => {
-        // Panggil server action
         const result = await deletePost(postId);
-        if (!result.success) {
-          alert(result.message); // Tampilkan error jika gagal
+        if (result.success) {
+            toast.success(result.message);
+        } else if(result.message) {
+            toast.error(result.message);
         }
       });
     }
   };
 
   return (
-    <button
-      onClick={handleClick}
+    <DropdownMenuItem
+      className="text-destructive"
+      onSelect={(e) => {
+        e.preventDefault();
+        handleClick();
+      }}
       disabled={isPending}
-      className="ml-4 text-red-600 hover:text-red-900 disabled:text-gray-400"
     >
       {isPending ? 'Menghapus...' : 'Hapus'}
-    </button>
+    </DropdownMenuItem>
   );
 }

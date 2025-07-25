@@ -3,36 +3,45 @@ import { getFoodById } from '@/lib/actions/foodActions';
 import { FoodForm } from '@/components/admin/FoodForm';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
-// Define the type for the page's props
 type EditFoodPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string; }>;
 };
 
-// Use the defined type in the function signature
 export default async function EditFoodPage({ params }: EditFoodPageProps) {
-  // Await the params to resolve the Promise
   const resolvedParams = await params;
   const { id } = resolvedParams;
   const food = await getFoodById(id);
 
   return (
     <>
-<Toaster position="top-center" richColors />
-      <div className="container mx-auto max-w-2xl py-10 px-4">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Edit Makanan</h1>
-            {/* --- TOMBOL BATAL DITAMBAHKAN DI SINI --- */}
-            <Link href="/admin/foods">
-                <Button>Batal</Button>
-            </Link>
+      <Toaster position="top-center" richColors />
+      <div className="grid flex-1 items-start gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/foods">
+              <Button variant="outline" size="icon" className="h-7 w-7">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Kembali</span>
+              </Button>
+          </Link>
+          <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+            Edit Makanan
+          </h1>
         </div>
-        <div className="p-8 bg-card rounded-lg shadow-sm border">
-          <FoodForm food={food} />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Detail Makanan</CardTitle>
+            <CardDescription>
+              Perbarui detail makanan yang sudah ada di database.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FoodForm food={food} />
+          </CardContent>
+        </Card>
       </div>
     </>
   );

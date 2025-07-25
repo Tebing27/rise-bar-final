@@ -29,15 +29,19 @@ export default async function AdminDashboardPage() {
   const stats = await getStats();
 
   return (
-    <div className="container mx-auto py-4 px-4">
-      <h1 className="text-3xl font-bold mb-6">Dashboard Overview</h1>
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+    <div className="flex flex-col gap-4">
+      <h1 className="text-2xl md:text-3xl font-bold">Dashboard Overview</h1>
+      
+      {/* ✅ Grid responsif untuk kartu statistik */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Pengguna" value={stats.users.toString()} Icon={Users} />
         <StatCard title="Artikel Terpublikasi" value={`${stats.publishedPosts} / ${stats.posts}`} Icon={FileText} />
         <StatCard title="Total Rekomendasi" value={stats.recommendations.toString()} Icon={MessageSquareQuote} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-8">
-        <Card className="lg:col-span-4">
+
+      {/* ✅ Grid responsif untuk kartu konten */}
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-7">
+        <Card className="xl:col-span-4">
           <CardHeader>
             <CardTitle>Pengguna Baru</CardTitle>
             <CardDescription>5 pengguna terakhir yang mendaftar.</CardDescription>
@@ -47,21 +51,21 @@ export default async function AdminDashboardPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Nama</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead className="hidden sm:table-cell">Email</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {stats.recentUsers.map(user => (
                         <TableRow key={user.id}>
                             <TableCell className="font-medium">{user.name}</TableCell>
-                            <TableCell>{user.email}</TableCell>
+                            <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
              </Table>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
+        <Card className="xl:col-span-3">
             <CardHeader>
                 <CardTitle>Draft Artikel</CardTitle>
                  <CardDescription>Artikel yang belum dipublikasikan.</CardDescription>
@@ -70,9 +74,9 @@ export default async function AdminDashboardPage() {
                 <div className="space-y-4">
                     {stats.draftPosts.map(post => (
                         <div key={post.id} className="flex items-center justify-between">
-                            <span className="text-sm font-medium">{post.title}</span>
+                            <span className="text-sm font-medium truncate pr-4">{post.title}</span>
                             <Link href={`/admin/blogs/edit/${post.id}`}>
-                               <Badge variant="outline">Edit</Badge>
+                               <Badge variant="outline" className="flex-shrink-0">Edit</Badge>
                             </Link>
                         </div>
                     ))}

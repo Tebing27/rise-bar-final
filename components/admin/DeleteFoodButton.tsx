@@ -1,16 +1,23 @@
+// components/admin/DeleteFoodButton.tsx
 'use client';
 
 import { deleteFood } from '@/lib/actions/foodActions';
 import { useFormStatus } from 'react-dom';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'; // <-- Ganti impor
 
 function DeleteButtonUI() {
     const { pending } = useFormStatus();
     return (
-        <Button variant="destructive" size="sm" type="submit" disabled={pending}>
-            {pending ? '...' : 'Hapus'}
-        </Button>
+        // Gunakan DropdownMenuItem
+        <DropdownMenuItem 
+            className="text-destructive" 
+            onSelect={(e) => e.preventDefault()} // Mencegah dropdown tertutup otomatis
+        >
+            <button type="submit" disabled={pending} className="w-full text-left">
+              {pending ? 'Menghapus...' : 'Hapus'}
+            </button>
+        </DropdownMenuItem>
     );
 }
 
@@ -29,7 +36,7 @@ export function DeleteFoodButton({ id }: { id: string }) {
   };
 
   return (
-    <form action={actionWithId} className="inline">
+    <form action={actionWithId}>
       <DeleteButtonUI />
     </form>
   );
