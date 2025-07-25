@@ -1,7 +1,6 @@
 // app/(main)/profile/page.tsx
 'use client';
 
-// ✅ PERBAIKAN: Tambahkan 'useState' ke dalam impor dari 'react'
 import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { getUserProfile, updateUserProfile, UserProfile } from '@/lib/actions/userActions';
@@ -12,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? 'Menyimpan...' : 'Simpan Perubahan'}
     </Button>
   );
@@ -35,20 +36,20 @@ function ProfileForm({ user }: { user: UserProfile }) {
     <form action={formAction} className="space-y-6">
       <div>
         <Label htmlFor="name">Nama Lengkap</Label>
-        <Input id="name" name="name" defaultValue={user.name || ''} required className='mt-4'/>
+        <Input id="name" name="name" defaultValue={user.name || ''} required className='mt-2'/>
         {(state as any)?.errors?.name && <p className="text-red-500 text-xs mt-1">{(state as any).errors.name[0]}</p>}
       </div>
 
       <div>
         <Label htmlFor="date_of_birth">Tanggal Lahir</Label>
-        <Input id="date_of_birth" name="date_of_birth" type="date" defaultValue={user.date_of_birth || ''} required className='mt-4'/>
+        <Input id="date_of_birth" name="date_of_birth" type="date" defaultValue={user.date_of_birth || ''} required className='mt-2'/>
         {(state as any)?.errors?.date_of_birth && <p className="text-red-500 text-xs mt-1">{(state as any).errors.date_of_birth[0]}</p>}
       </div>
 
       <div>
-        <Label htmlFor="gender" className='mb-4'>Jenis Kelamin</Label>
+        <Label htmlFor="gender">Jenis Kelamin</Label>
         <Select name="gender" defaultValue={user.gender || ''} required>
-          <SelectTrigger>
+          <SelectTrigger className="mt-2">
             <SelectValue placeholder="Pilih jenis kelamin..." />
           </SelectTrigger>
           <SelectContent>
@@ -59,9 +60,9 @@ function ProfileForm({ user }: { user: UserProfile }) {
       </div>
 
       <div>
-        <Label htmlFor="diabetes_type" className='mb-4'>Kondisi/Tipe Diabetes</Label>
+        <Label htmlFor="diabetes_type">Kondisi/Tipe Diabetes</Label>
         <Select name="diabetes_type" defaultValue={user.diabetes_type || ''} required>
-          <SelectTrigger>
+          <SelectTrigger className="mt-2">
             <SelectValue placeholder="Pilih kondisi Anda..." />
           </SelectTrigger>
           <SelectContent>
@@ -74,18 +75,21 @@ function ProfileForm({ user }: { user: UserProfile }) {
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="height_cm">Tinggi Badan (cm)</Label>
-          <Input id="height_cm" name="height_cm" type="number" placeholder="Opsional" defaultValue={user.height_cm || ''} className='mt-4'/>
+          <Input id="height_cm" name="height_cm" type="number" placeholder="Opsional" defaultValue={user.height_cm || ''} className='mt-2'/>
         </div>
         <div>
           <Label htmlFor="weight_kg">Berat Badan (kg)</Label>
-          <Input id="weight_kg" name="weight_kg" type="number" step="0.1" placeholder="Opsional" defaultValue={user.weight_kg?.toString() || ''} className='mt-4'/>
+          <Input id="weight_kg" name="weight_kg" type="number" step="0.1" placeholder="Opsional" defaultValue={user.weight_kg?.toString() || ''} className='mt-2'/>
         </div>
       </div>
 
-      <div className="pt-2">
+      <div className="pt-2 flex justify-end gap-2">
+        <Link href="/tracker">        
+          <Button variant="secondary">Batal</Button>
+        </Link>
         <SubmitButton />
       </div>
     </form>
@@ -112,13 +116,13 @@ export default function ProfilePage() {
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="container mx-auto max-w-2xl py-10">
-        <div className="mb-4">
-            <h1 className="text-3xl font-bold tracking-tight">Profil Saya</h1>
-            <p className="text-muted-foreground">Lihat dan perbarui informasi pribadi Anda di sini.</p>
+      <div className="container mx-auto max-w-2xl py-6 sm:py-10 px-4">
+        <div className="mb-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Profil Saya</h1>
+            <p className="text-muted-foreground mt-1">Lihat dan perbarui informasi pribadi Anda di sini.</p>
         </div>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="p-6">
             <ProfileForm user={user} />
           </CardContent>
         </Card>

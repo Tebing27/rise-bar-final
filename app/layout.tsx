@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans flex flex-col min-h-screen`}>
         <AuthProvider>
           <Navbar />
-          <main className="flex-grow pt-16">{children}</main>
+          <main className="flex-grow pt-6">{children}</main>
           {/* <Footer /> */}
         </AuthProvider>
       </body>

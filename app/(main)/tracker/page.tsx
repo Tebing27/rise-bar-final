@@ -31,7 +31,7 @@ export default async function TrackerPage({
   return (
     <>
       <Toaster position="top-center" richColors />
-      <div className="flex-1 space-y-8 p-4 md:p-8 pt-6">
+      <div className="flex-1 space-y-8 p-4 md:p-8 pt-4">
         <TrackerHeader userName={userName} />
 
         {entries.length === 0 ? (

@@ -6,11 +6,8 @@ import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-// We will define a new type instead of importing from trackerActions
-// import type { FormState } from './trackerActions'; 
 import { v2 as cloudinary } from 'cloudinary';
 
-// Define a new, correct FormState type for the blog
 export type BlogFormState = {
   success: boolean;
   message?: string;
@@ -23,6 +20,7 @@ const searchParamsSchema = z.object({
   search: z.string().optional(),
   sortBy: z.enum(['newest', 'popular']).default('newest'),
   page: z.coerce.number().min(1).default(1),
+  tag: z.string().optional(),
 });
 
 cloudinary.config({
@@ -67,10 +65,20 @@ async function handleTags(post_id: string, tagsString?: string | null) {
   await supabaseAdmin.from('post_tags').insert(allTagIds.map(tag_id => ({ post_id, tag_id })));
 }
 
+export async function getAllTags() {
+  const { data, error } = await db.from('tags').select('name').order('name', { ascending: true });
+  if (error) {
+    console.error('Error fetching tags:', error);
+    return [];
+  }
+  return data;
+}
+
 export async function getPosts(params: {
   search?: string;
   sortBy?: string;
   page?: number;
+  tag?: string;
 }) {
   const validatedParams = searchParamsSchema.safeParse(params);
 
@@ -78,40 +86,53 @@ export async function getPosts(params: {
     throw new Error('Invalid search parameters.');
   }
 
-  const { search, sortBy, page } = validatedParams.data;
+  const { search, sortBy, page, tag } = validatedParams.data;
   const postsPerPage = 5;
   const from = (page - 1) * postsPerPage;
   const to = from + postsPerPage - 1;
 
-  let query = db
-    .from('posts')
-    .select(
-      `
-      *,
-      author:users ( name ),
-      tags ( name )
-    `,
-      { count: 'exact' } // Important for pagination
-    )
-    .eq('is_published', true);
-
-  // 1. Search functionality
-  if (search) {
-    query = query.textSearch('title', search, {
-      type: 'plain',
-      config: 'english',
-    });
+  // ✅ PERBAIKAN UTAMA DI SINI
+  // Logika query diubah untuk menangani filter tag dengan benar
+  let query;
+  if (tag) {
+    // Jika ada filter tag, gunakan query khusus untuk relasi
+    query = db
+      .from('posts')
+      .select(
+        `
+        *,
+        author:users ( name ),
+        tags!inner ( name ) 
+      `,
+        { count: 'exact' }
+      )
+      .eq('is_published', true)
+      .eq('tags.name', tag); // Filter berdasarkan nama tag di relasi
+  } else {
+    // Query standar jika tidak ada filter tag
+    query = db
+      .from('posts')
+      .select(
+        `
+        *,
+        author:users ( name ),
+        tags ( name )
+      `,
+        { count: 'exact' }
+      )
+      .eq('is_published', true);
   }
 
-  // 2. Filtering and Sorting
+  if (search) {
+    query = query.textSearch('title', search, { type: 'plain', config: 'english' });
+  }
+
   if (sortBy === 'popular') {
     query = query.order('view_count', { ascending: false });
-  } else { // 'else if' menjadi 'else'
-    // Default to 'newest'
+  } else {
     query = query.order('published_at', { ascending: false });
   }
 
-  // 3. Pagination
   query = query.range(from, to);
 
   const { data, error, count } = await query;
@@ -126,11 +147,8 @@ export async function getPosts(params: {
   return { posts: data, totalPages };
 }
 
-export async function upsertPost(
-  prevState: BlogFormState,
-  formData: FormData
-): Promise<BlogFormState> {
-
+// ... (Sisa fungsi upsertPost, getCloudinarySignature, deletePost tidak berubah)
+export async function upsertPost(prevState: BlogFormState, formData: FormData): Promise<BlogFormState> {
   const rawData = {
     id: formData.get('id') || undefined,
     title: formData.get('title'),

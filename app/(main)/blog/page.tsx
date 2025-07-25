@@ -1,7 +1,7 @@
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image'; // Impor Image
-import { getPosts } from '@/lib/actions/blogActions';
+import { getPosts, getAllTags } from '@/lib/actions/blogActions';
 import { SearchAndFilter } from '@/components/blog/SearchAndFilter';
 import { PostCard } from '@/components/shared/PostCard'; // Assuming BlogCard is in shared
 import { Pagination } from '@/components/admin/Pagination'; // We can reuse the admin pagination
@@ -88,13 +88,17 @@ export default async function BlogListPage({
 }) {
   // This is the correct way to access searchParams in a Server Component
   const resolvedSearchParams = await searchParams;
-  const { search, sortBy, page } = resolvedSearchParams;
+  const { search, sortBy, page, tag } = resolvedSearchParams;
 
-  const { posts, totalPages } = await getPosts({
-    search,
-    sortBy,
-    page: page ? parseInt(page) : 1,
-  });
+  const [{ posts, totalPages }, tags] = await Promise.all([
+    getPosts({
+      search: search as string,
+      sortBy: sortBy as string,
+      page: page ? parseInt(page as string) : 1,
+      tag: tag as string,
+    }),
+    getAllTags(),
+  ]);
 
   return (
     <div className="bg-background">
@@ -104,12 +108,13 @@ export default async function BlogListPage({
                 Wawasan Kesehatan
             </h1>
             <p className="mt-4 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-                Temukan artikel, tips, dan panduan terbaru dari para ahli untuk membantu Anda mengelola kesehatan glukosa dengan lebih baik.
+                Temukan artikel, tips, dan panduan terbaru untuk membantu Anda mengelola kesehatan.
             </p>
         </div>
 
         <div className="max-w-3xl mx-auto">
-            <SearchAndFilter />
+            {/* ✅ Kirim daftar tags ke komponen filter */}
+            <SearchAndFilter tags={tags} />
         </div>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -119,7 +124,7 @@ export default async function BlogListPage({
             <div className="md:col-span-2 lg:col-span-3 text-center py-16">
               <h3 className="text-xl font-semibold">Artikel Tidak Ditemukan</h3>
               <p className="text-muted-foreground mt-2">
-                Coba gunakan kata kunci lain atau sesuaikan filter Anda.
+                Coba gunakan kata kunci atau filter yang lain.
               </p>
             </div>
           )}

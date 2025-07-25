@@ -1,13 +1,35 @@
 // components/tracker/tabs/AnalysisTabContent.tsx
 import { getAnalysisRecommendation, getPersonalizedInsights } from '@/lib/actions/recommendationActions';
 import { Lightbulb, Sparkles } from 'lucide-react';
-import { type Recommendation } from '@/lib/actions/recommendationActions';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 export async function AnalysisTabContent() {
-    const [personalizedInsights, generalRecommendation] = await Promise.all([
+    const [personalizedInsights, generalRecommendations] = await Promise.all([
         getPersonalizedInsights(),
         getAnalysisRecommendation()
     ]);
+
+    // Objek untuk memetakan kategori ke kelas CSS Tailwind
+    const categoryStyles = {
+      Tinggi: {
+        card: "bg-red-50 border-red-200",
+        title: "text-red-800",
+        description: "text-red-700",
+        icon: "text-red-500"
+      },
+      Normal: {
+        card: "bg-green-50 border-green-200",
+        title: "text-green-800",
+        description: "text-green-700",
+        icon: "text-green-500"
+      },
+      Rendah: {
+        card: "bg-blue-50 border-blue-200",
+        title: "text-blue-800",
+        description: "text-blue-700",
+        icon: "text-blue-500"
+      },
+    };
 
   return (
     <div className="space-y-6 mt-5">
@@ -24,17 +46,28 @@ export async function AnalysisTabContent() {
             </ul>
           </div>
         )}
-        {generalRecommendation && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg mt-5">
-            <h4 className="flex items-center gap-2 font-semibold mb-2 text-green-800">
-              <Lightbulb className="w-5 h-5" />
+
+        {generalRecommendations.length > 0 && (
+          <div className="space-y-4">
+            {/* Judul dibuat netral */}
+            <h4 className="flex items-center gap-2 font-semibold text-foreground">
+              <Lightbulb className="w-5 h-5 text-yellow-500" />
               Rekomendasi Umum
             </h4>
-            <p className="font-semibold text-primary">{generalRecommendation.title}</p>
-            <p className="text-sm text-muted-foreground">{generalRecommendation.description}</p>
+            {generalRecommendations.map((rec) => {
+              // Ambil style berdasarkan kategori, atau default ke 'Normal' jika tidak ditemukan
+              const styles = categoryStyles[rec.category as keyof typeof categoryStyles] || categoryStyles.Normal;
+              return (
+                <div key={rec.id} className={cn("p-4 border rounded-lg", styles.card)}>
+                  <p className={cn("font-semibold", styles.title)}>{rec.title}</p>
+                  <p className={cn("text-sm mt-1", styles.description)}>{rec.description}</p>
+                </div>
+              )
+            })}
           </div>
         )}
-        {!personalizedInsights.length && !generalRecommendation && (
+        
+        {!personalizedInsights.length && generalRecommendations.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
                 Data belum cukup untuk analisis.
             </p>
