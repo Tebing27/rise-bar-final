@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -16,26 +17,20 @@ export function Navbar() {
   const userRole = session?.user?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Cek apakah sedang berada di halaman Beranda
   const isHomePage = pathname === '/';
-  
-  // ✅ Cek apakah pengguna berada di area aplikasi utama (dashboard)
   const isAppArea = pathname.startsWith('/tracker') || pathname.startsWith('/profile');
-
   const blogHref = isHomePage ? '/#blog' : '/blog';
 
-  // Link untuk Publik (Belum Login)
   const publicLinks = [
     { href: '/', label: 'Beranda' },
-    { href: blogHref, label: 'Blog' },
-    ...(isHomePage ? [{ href: '/#fitur', label: 'Fitur' }] : []),
+    ...(isHomePage ? [{ href: '/#about', label: 'About' }] : []),
+     { href: blogHref, label: 'Blog' },
   ];
 
-  // Link untuk Pengguna (Sudah Login)
   const authLinks = [
     { href: '/', label: 'Beranda' },
-    { href: blogHref, label: 'Blog' },
-    ...(isHomePage ? [{ href: '/#fitur', label: 'Fitur' }] : []),
+    ...(isHomePage ? [{ href: '/#about', label: 'About' }] : []),
+      { href: blogHref, label: 'Blog' },
     { href: '/tracker', label: 'Dashboard' },
     { href: '/profile', label: 'Profil' },
   ];
@@ -51,14 +46,22 @@ export function Navbar() {
       <nav className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-primary" onClick={closeMobileMenu}>
-              GlucoseTracker
+            <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
+              <Image 
+                src="/logo.png"
+                alt="Rise Bar Logo"
+                width={32}
+                height={32}
+                className="h-8 w-auto"
+              />
+              <span className="text-2xl font-bold text-primary">
+                Rise Bar
+              </span>
             </Link>
           </div>
 
           {/* Navigasi Desktop (Tampilan Besar) */}
           <div className="hidden md:flex items-center space-x-8">
-             {/* Selalu tampilkan link publik di desktop untuk konsistensi */}
              {publicLinks.map((link) => (
               <Link
                 key={link.href}
@@ -84,14 +87,11 @@ export function Navbar() {
             )}
             {status === 'authenticated' && (
               <>
-                {/* ✅ LOGIKA BARU DI SINI */}
                 {isAppArea ? (
-                  // Jika di halaman tracker/profil, tampilkan tombol Profil
                   <Link href="/profile">
                     <Button size="sm" variant="ghost">Profil</Button>
                   </Link>
                 ) : (
-                  // Jika di halaman lain (Beranda), tampilkan tombol Dashboard
                   <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
                     <Button size="sm" variant="ghost">Dashboard</Button>
                   </Link>
@@ -113,6 +113,7 @@ export function Navbar() {
 
       {/* Menu Mobile (Dropdown) */}
       {isMobileMenuOpen && (
+        // ✅ PERBAIKAN: Mengembalikan background menjadi solid (bg-background) agar teks terbaca jelas
         <div className="md:hidden absolute top-16 left-0 w-full bg-background border-b shadow-lg animate-in fade-in-20">
           <div className="flex flex-col space-y-2 p-4">
             {status === 'authenticated' ? (

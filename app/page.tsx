@@ -8,6 +8,7 @@ import { Features } from '@/components/shared/Features';
 import { CTA } from '@/components/shared/CTA';
 import { PostCard } from '@/components/shared/PostCard';
 import { Footer } from '@/components/shared/Footer';
+import { About } from '@/components/shared/About';
 
 async function getPopularPosts() {
   const { data, error } = await db
@@ -37,6 +38,8 @@ export default async function HomePage() {
         subheadline={content.home_subheadline || 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda dengan lebih baik setiap hari.'}
       />
       
+      <About/>
+
       <Features />
 
       {popularPosts.length > 0 && (

@@ -1,38 +1,59 @@
-// ricebarfinal/components/shared/Footer.tsx
+// components/shared/Footer.tsx
+import { Instagram, Linkedin, MessageCircle } from 'lucide-react';
+
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4">
+    // ✅ PERBAIKAN: Menggunakan warna `bg-muted` untuk kontras yang lembut
+    <footer className="bg-muted text-muted-foreground py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">GlucoseTracker</h3>
-            <p className="text-gray-400">
+            <h3 className="text-xl font-bold text-foreground">Rise Bar</h3>
+            <p>
               Solusi modern untuk pemantauan kesehatan Anda.
             </p>
           </div>
+          
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Layanan</h3>
+            <h3 className="text-xl font-bold text-foreground">Layanan</h3>
             <ul className="space-y-2">
               <li>Pemantauan Glukosa</li>
               <li>Analisis Data</li>
               <li>Artikel Kesehatan</li>
             </ul>
           </div>
+          
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Tautan</h3>
+            <h3 className="text-xl font-bold text-foreground">Tautan</h3>
             <ul className="space-y-2">
-              <li><a href="/about" className="hover:text-green-400">Tentang</a></li>
-              <li><a href="/blog" className="hover:text-green-400">Blog</a></li>
-              <li><a href="/login" className="hover:text-green-400">Login</a></li>
+              <li><a href="/about" className="hover:text-primary">Tentang</a></li>
+              <li><a href="/blog" className="hover:text-primary">Blog</a></li>
+              <li><a href="/login" className="hover:text-primary">Login</a></li>
             </ul>
           </div>
+          
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Ikuti Kami</h3>
-            {/* Tambahkan ikon media sosial di sini jika diperlukan */}
+            <h3 className="text-xl font-bold text-foreground">Ikuti Kami</h3>
+            <div className="flex items-center space-x-4">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Instagram className="h-6 w-6" />
+                <span className="sr-only">Instagram</span>
+              </a>
+              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <MessageCircle className="h-6 w-6" /> 
+                <span className="sr-only">TikTok</span>
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Linkedin className="h-6 w-6" />
+                <span className="sr-only">LinkedIn</span>
+              </a>
+            </div>
           </div>
+
         </div>
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p>&copy; {new Date().getFullYear()} GlucoseTracker. All rights reserved.</p>
+        <div className="border-t border-border mt-8 pt-8 text-center">
+          <p>&copy; {new Date().getFullYear()} Rise Bar. All rights reserved.</p>
         </div>
       </div>
     </footer>
