@@ -2,10 +2,10 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LogoutButton } from '@/components/auth/LogoutButton';
@@ -16,9 +16,18 @@ export function Navbar() {
   const pathname = usePathname();
   const userRole = session?.user?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Untuk sementara, kita gunakan state untuk logo.
+  // Ke depannya, ini bisa di-fetch dari API jika diperlukan di client component.
+  const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const [logoText, setLogoText] = useState('Rise Bar');
+  
+  // Logika utama: Jika sedang di halaman admin, jangan render Navbar sama sekali.
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   const isHomePage = pathname === '/';
-  const isAppArea = pathname.startsWith('/tracker') || pathname.startsWith('/profile');
   const blogHref = isHomePage ? '/#blog' : '/blog';
 
   const publicLinks = [
@@ -26,39 +35,32 @@ export function Navbar() {
     ...(isHomePage ? [{ href: '/#about', label: 'About' }] : []),
      { href: blogHref, label: 'Blog' },
   ];
-
+  
   const authLinks = [
-    { href: '/', label: 'Beranda' },
-    ...(isHomePage ? [{ href: '/#about', label: 'About' }] : []),
-      { href: blogHref, label: 'Blog' },
+    ...publicLinks,
     { href: '/tracker', label: 'Dashboard' },
     { href: '/profile', label: 'Profil' },
   ];
-  
-  if (pathname.startsWith('/admin')) {
-    return null;
-  }
-  
+
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <header className="sticky top-0 w-full bg-background/80 backdrop-blur-sm border-b z-50">
       <nav className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
-          <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
-              <Image 
-                src="/logo.png"
-                alt="Rise Bar Logo"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
-              />
-              <span className="text-2xl font-bold text-primary">
-                Rise Bar
-              </span>
-            </Link>
-          </div>
+          {/* Logo & Brand Name */}
+          <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
+            <Image 
+              src={logoUrl}
+              alt="Rise Bar Logo"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <span className="text-2xl font-bold text-primary">
+              {logoText}
+            </span>
+          </Link>
 
           {/* Navigasi Desktop (Tampilan Besar) */}
           <div className="hidden md:flex items-center space-x-8">
@@ -87,15 +89,9 @@ export function Navbar() {
             )}
             {status === 'authenticated' && (
               <>
-                {isAppArea ? (
-                  <Link href="/profile">
-                    <Button size="sm" variant="ghost">Profil</Button>
-                  </Link>
-                ) : (
-                  <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
-                    <Button size="sm" variant="ghost">Dashboard</Button>
-                  </Link>
-                )}
+                <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
+                  <Button size="sm" variant="ghost">Dashboard</Button>
+                </Link>
                 <LogoutButton />
               </>
             )}
@@ -113,11 +109,9 @@ export function Navbar() {
 
       {/* Menu Mobile (Dropdown) */}
       {isMobileMenuOpen && (
-        // ✅ PERBAIKAN: Mengembalikan background menjadi solid (bg-background) agar teks terbaca jelas
         <div className="md:hidden absolute top-16 left-0 w-full bg-background border-b shadow-lg animate-in fade-in-20">
           <div className="flex flex-col space-y-2 p-4">
-            {status === 'authenticated' ? (
-              // --- Menu saat sudah login ---
+            {session ? (
               <>
                 {authLinks.map(link => (
                   <Link
@@ -137,7 +131,6 @@ export function Navbar() {
                 </div>
               </>
             ) : (
-              // --- Menu saat belum login ---
               <>
                 {publicLinks.map(link => (
                    <Link

@@ -19,19 +19,20 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  // Tentukan URL gambar, gunakan maskot sebagai fallback jika tidak ada image_url
+  const imageUrl = post.image_url || '/mascot_berjelajah_arbie.png'; // <-- Gambar dari folder /public
+
   return (
     <Link href={`/blog/${post.slug}`} className="block group">
       <article className="flex flex-col h-full bg-card rounded-xl border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden">
-        {post.image_url && (
-          <div className="relative w-full aspect-video">
-            <Image
-              src={post.image_url}
-              alt={post.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
+        <div className="relative w-full aspect-video">
+          <Image
+            src={imageUrl}
+            alt={post.title}
+            fill
+            className="object-cover"
+          />
+        </div>
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex items-center gap-x-4 text-xs text-muted-foreground mb-2">
             <time dateTime={post.published_at}>

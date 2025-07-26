@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Sun, CloudSun, CloudMoon, Moon } from 'lucide-react';
+import Image from 'next/image';
 
 interface TrackerHeaderProps {
   userName: string;
@@ -39,6 +40,13 @@ export function TrackerHeader({ userName }: TrackerHeaderProps) {
         <h2 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
           <Icon className="w-8 h-8 text-yellow-500" />
           {text}, {userName}!
+          <Image
+              src="/mascot_menyapa.png" // Pastikan gambar ada di folder /public
+              alt="Mascot Menyapa"
+              width={80}
+              height={80}
+              // className="mb-6"
+          />
         </h2>
         <p className="text-muted-foreground mt-1">
           Semoga harimu menyenangkan. Mari lihat progres kesehatanmu hari ini.

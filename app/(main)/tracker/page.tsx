@@ -11,6 +11,7 @@ import { GoalsTabs } from "@/components/tracker/tabs/GoalsTabs";
 import { TrackerHeader } from "@/components/tracker/TrackerHeader";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from 'next/image';
 
 // --- TAMBAHKAN BARIS INI UNTUK MENGATASI ERROR ---
 export const dynamic = "force-dynamic";
@@ -36,6 +37,13 @@ export default async function TrackerPage({
 
         {entries.length === 0 ? (
            <Card className="bg-indigo-50 dark:bg-indigo-900/30 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">
+            <Image
+                src="/mascot_bertanya.png" // Pastikan gambar ada di folder /public
+                alt="Mascot Bertanya"
+                width={150}
+                height={150}
+                className="mb-6"
+              />
               <CardTitle className="text-2xl font-semibold">Mulai Perjalanan Kesehatan Anda</CardTitle>
               <CardDescription className="mt-2 max-w-md">
                   Anda belum memiliki catatan apapun. Klik tombol di bawah untuk mulai mencatat dan melihat analisis kesehatan Anda.

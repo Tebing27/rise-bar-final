@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Users, Utensils, FileText, Settings, Package2, LayoutDashboard } from 'lucide-react';
+import { Home, Users, Utensils, FileText, Settings, Package2, LayoutDashboard, Palette } from 'lucide-react';
 import { LogoutButton } from '../auth/LogoutButton';
 import { Button } from '@/components/ui/button';
 
@@ -15,6 +15,7 @@ const adminNavItems = [
   { title: "Makanan", href: "/admin/foods", icon: Utensils },
   { title: "Blog", href: "/admin/blogs", icon: FileText },
   { title: "Rekomendasi", href: "/admin/recommendations", icon: Settings },
+  { title: "Konten", href: "/admin/content", icon: Palette },
 ];
 
 export function AdminSidebar() {

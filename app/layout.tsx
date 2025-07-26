@@ -5,17 +5,21 @@ import './globals.css';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { Navbar } from '@/components/shared/Navbar';
 // import { Footer } from '@/components/shared/Footer';
+import { getSiteContentAsMap } from '@/lib/content';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
-export const metadata: Metadata = {
-  title: 'Rise Bar | Lacak Gula Darah Anda',
-  description: 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda.',
-  // ✅ TAMBAHKAN BARIS INI
-  icons: {
-    icon: '/favicon.ico', // Pastikan file favicon.ico ada di folder /app
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getSiteContentAsMap();
+
+  return {
+    title: content.site_title || 'Rise Bar | Lacak Gula Darah Anda',
+    description: content.site_description || 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda.',
+    icons: {
+      icon: content.site_favicon_url || '/favicon.ico',
+    },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -27,7 +31,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans flex flex-col min-h-screen`}>
         <AuthProvider>
           <Navbar />
-          <main className="flex-grow pt-8">{children}</main>
+          <main className="flex-grow">{children}</main>
           {/* <Footer /> */}
         </AuthProvider>
       </body>

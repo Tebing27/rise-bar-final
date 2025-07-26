@@ -1,7 +1,9 @@
 // components/shared/Footer.tsx
 import { Instagram, Linkedin, MessageCircle } from 'lucide-react';
+import { getSiteContentAsMap } from '@/lib/content';
 
-export function Footer() {
+export async function Footer() {
+  const content = await getSiteContentAsMap();
   return (
     // ✅ PERBAIKAN: Menggunakan warna `bg-muted` untuk kontras yang lembut
     <footer className="bg-muted text-muted-foreground py-12">
@@ -9,9 +11,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-foreground">Rise Bar</h3>
+            <h3 className="text-xl font-bold text-foreground">{content.footer_brand_name || 'Rise Bar'}</h3>
             <p>
-              Solusi modern untuk pemantauan kesehatan Anda.
+              {content.footer_tagline || 'Solusi modern untuk pemantauan kesehatan Anda.'}
             </p>
           </div>
           
@@ -36,15 +38,15 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-foreground">Ikuti Kami</h3>
             <div className="flex items-center space-x-4">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={content.social_instagram_link || '#'} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Instagram className="h-6 w-6" />
                 <span className="sr-only">Instagram</span>
               </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={content.social_tiktok_link || '#'} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <MessageCircle className="h-6 w-6" /> 
                 <span className="sr-only">TikTok</span>
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={content.social_linkedin_link || '#'} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Linkedin className="h-6 w-6" />
                 <span className="sr-only">LinkedIn</span>
               </a>
@@ -53,7 +55,7 @@ export function Footer() {
 
         </div>
         <div className="border-t border-border mt-8 pt-8 text-center">
-          <p>&copy; {new Date().getFullYear()} Rise Bar. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {content.footer_brand_name || 'Rise Bar'}. All rights reserved.</p>
         </div>
       </div>
     </footer>

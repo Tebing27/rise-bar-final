@@ -2,20 +2,29 @@
 import Image from 'next/image';
 import { Users, Smile } from 'lucide-react';
 
-export function About() {
+interface AboutProps {
+  aboutImageUrl: string;
+  aboutTitle: string;
+  aboutDescription: string;
+  aboutCta: string;
+  aboutMainParagraph: string; 
+  pilltext_about: string;
+}
+
+export function About({aboutImageUrl, aboutTitle, aboutDescription, aboutCta, aboutMainParagraph, pilltext_about}: AboutProps) {
   return (
     <section id="about" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Judul Section */}
         <div className="mx-auto max-w-2xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary mb-4">
-             👋 Halo, Rise!
+             {pilltext_about}
             </div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Tentang Rise Bar
+            {aboutTitle}
           </h2>
           <p className="mt-4 text-lg leading-8 text-foreground/60">
-            Solusi Modern untuk Pemantauan Kesehatan Anda
+            {aboutDescription}
           </p>
         </div>
 
@@ -24,7 +33,7 @@ export function About() {
           {/* Kolom Gambar */}
           <div className="flex justify-center animate-in fade-in zoom-in-95 duration-700">
             <Image
-              src="/risebar_hero.png" // Menggunakan gambar yang sudah ada
+              src={aboutImageUrl || "/risebar_hero.png"} // Menggunakan gambar yang sudah ada
               alt="Tentang Glucose Tracker"
               width={500}
               height={500}
@@ -35,10 +44,10 @@ export function About() {
           {/* Kolom Teks dan Statistik */}
           <div className="animate-in fade-in slide-in-from-right-8 duration-700">
             <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Mengapa Memilih Rise Bar?
+              {aboutCta}
             </h3>
             <p className="mt-6 text-lg leading-8 text-foreground/70">
-              Rise Bar adalah platform inovatif yang dirancang khusus untuk membantu Anda mengelola dan memantau kadar gula darah dengan lebih efektif. Dengan teknologi modern dan antarmuka yang user-friendly, kami berkomitmen untuk memberikan pengalaman terbaik dalam perjalanan kesehatan Anda.
+              {aboutMainParagraph}
             </p>
             
             {/* Statistik */}

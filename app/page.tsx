@@ -36,11 +36,22 @@ export default async function HomePage() {
       <Hero
         headline={content.home_headline || 'Pantau Gula Darah, Raih Hidup Sehat.'}
         subheadline={content.home_subheadline || 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda dengan lebih baik setiap hari.'}
+        heroImageUrl={content.home_hero_image} // Kirim URL gambar ke komponen Hero
+        pillText={content.home_pill_text || '✨ Rise Bar – Aplikasi Kelola Diabetes'} // <-- Tambahkan prop ini
       />
       
-      <About/>
+      <About
+        aboutImageUrl={content.about_image_url}
+        aboutTitle={content.about_title || "Tentang Rise Bar"}
+        aboutDescription={content.about_description || "Solusi Modern untuk Pemantauan Kesehatan Anda"}
+        aboutCta={content.about_cta || "Mengapa Memilih Rise Bar?"}
+        aboutMainParagraph={content.about_main_paragraph || 'Rise Bar adalah platform inovatif yang dirancang khusus untuk membantu Anda mengelola dan memantau kadar gula darah dengan lebih efektif. Dengan teknologi modern dan antarmuka yang user-friendly, kami berkomitmen untuk memberikan pengalaman terbaik dalam perjalanan kesehatan Anda.'}
+        pilltext_about={content.about_pill_text || '👋 Halo, Rise!'}
+      />
 
-      <Features />
+      <Features 
+        pilltext_features={content.feature_pill_text || '⭐ Cara Kerjanya'}
+      />
 
       {popularPosts.length > 0 && (
         <section id="blog" className="bg-white py-20">
@@ -67,7 +78,11 @@ export default async function HomePage() {
         </section>
       )}
 
-      <CTA />
+      <CTA 
+        headline={content.cta_headline || "Siap untuk memulai?"}
+        subheadline={content.cta_subheadline || "Buat akun gratis dan dapatkan akses penuh ke semua fitur kami."}
+        buttonText={content.cta_button_text || "Daftar Sekarang Gratis"}
+      />
       <Footer/>
     </>
   );

@@ -7,9 +7,11 @@ import Image from 'next/image';
 interface HeroProps {
   headline: string;
   subheadline: string;
+  heroImageUrl: string;
+  pillText: string;
 }
 
-export function Hero({ headline, subheadline }: HeroProps) {
+export function Hero({ headline, subheadline, heroImageUrl, pillText }: HeroProps) {
   return (
     <section className="relative pt-15 pb-20 lg:pt-16 lg:pb-28 overflow-hidden bg-gradient-to-br from-primary/80 via-indigo-200/60 to-white animate-fade-in">
       <div className="absolute inset-0 bg-background pointer-events-none" />
@@ -17,7 +19,7 @@ export function Hero({ headline, subheadline }: HeroProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-center lg:text-left animate-in fade-in slide-in-from-top-8 duration-700">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 h-8 mb-5 text-sm font-semibold text-primary">
-              ✨ Rise Bar – Aplikasi Kelola Diabetes 
+              {pillText}
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
               {headline}
@@ -38,7 +40,7 @@ export function Hero({ headline, subheadline }: HeroProps) {
           </div>
           <div className="flex justify-center animate-in fade-in slide-in-from-top-8 duration-700">
             <Image 
-              src="/risebar_hero.png"
+              src={heroImageUrl || "/risebar_hero.png"}
               alt="Glucose Tracker Illustration"
               width={1920}
               height={1080}

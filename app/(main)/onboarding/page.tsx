@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -36,6 +37,14 @@ export default function OnboardingPage() {
       <div className="container mx-auto flex min-h-screen items-center justify-center py-12">
         <Card className="w-full max-w-lg">
           <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+              <Image
+                src="/mascot_berjelajah_arbie.png" // Pastikan gambar ada di /public
+                alt="Mascot Onboarding"
+                width={120}
+                height={120}
+              />
+            </div>
             <CardTitle className="text-2xl">Selamat Datang!</CardTitle>
             <CardDescription>Lengkapi profil Anda untuk mendapatkan analisis yang lebih akurat.</CardDescription>
           </CardHeader>

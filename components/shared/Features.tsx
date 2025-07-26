@@ -19,13 +19,17 @@ const features = [
   },
 ];
 
-export function Features() {
+interface FeaturesProps { 
+  pilltext_features: string;
+}
+
+export function Features({pilltext_features}:FeaturesProps) {
   return (
     <section id="fitur" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-5xl px-6 lg:px-8 text-center">
         <div className="max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary mb-4">
-             ⭐ Cara Kerjanya
+             {pilltext_features}
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Tiga langkah, langsung paham kondisi Anda
