@@ -17,10 +17,10 @@ export function Navbar() {
   const userRole = session?.user?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Untuk sementara, kita gunakan state untuk logo.
-  // Ke depannya, ini bisa di-fetch dari API jika diperlukan di client component.
-  const [logoUrl, setLogoUrl] = useState('/logo.png');
-  const [logoText, setLogoText] = useState('Rise Bar');
+  // ✅ Perbaikan: Mengganti useState menjadi const karena nilainya statis.
+  // Ini akan menghilangkan warning 'setLogoUrl' and 'setLogoText' is defined but never used.
+  const logoUrl = '/logo.png';
+  const logoText = 'Rise Bar';
   
   // Logika utama: Jika sedang di halaman admin, jangan render Navbar sama sekali.
   if (pathname.startsWith('/admin')) {

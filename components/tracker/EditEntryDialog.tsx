@@ -1,9 +1,8 @@
 // components/tracker/EditEntryDialog.tsx
 'use client';
 
-import { useState, useEffect, useActionState, useRef } from 'react';
+import { useState, useEffect, useActionState } from 'react'; // <-- useRef dihapus dari sini
 import { useFormStatus } from 'react-dom';
-// --- PERBAIKAN: Impor fungsi baru ---
 import { updateTrackerEntry, searchFoods, getFoodsByNames, type FoodItem, type GlucoseEntry, type FormState } from '@/lib/actions/trackerActions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,7 +52,6 @@ const parseInitialFoodNames = (name: string): Partial<FoodItem>[] => {
 
 export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
   const [open, setOpen] = useState(false);
-  // ... (state lainnya tetap sama)
   const initialState: FormState = { success: undefined, error: undefined };
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
@@ -62,7 +60,6 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
   const [entryDate, setEntryDate] = useState('');
   const [entryTime, setEntryTime] = useState('');
 
-  // --- PERBAIKAN LOGIKA UTAMA DI SINI ---
   useEffect(() => {
     if (open) {
       const localDate = new Date(entry.created_at);
@@ -75,7 +72,6 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
       const foodNames = initialFoods.map(f => f.name!);
 
       if (foodNames.length > 0) {
-        // Gunakan fungsi baru untuk mendapatkan data lengkap
         getFoodsByNames(foodNames).then(fullFoodData => {
           const populatedFoods = initialFoods.map((initialFood, index) => {
             const foundData = fullFoodData.find(d => d.name === initialFood.name);
@@ -83,7 +79,6 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
               id: foundData?.id || `${initialFood.name}-${index}`,
               name: initialFood.name!,
               quantity: initialFood.quantity!,
-              // Pastikan nilai gula diambil dari data yang benar
               sugar_g: foundData?.sugar_g || 0,
             };
           });
@@ -96,7 +91,6 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
     }
   }, [open, entry]);
 
-  // ... (sisa kode komponen tetap sama)
   useEffect(() => {
     const newTotal = selectedFoods.reduce((acc, food) => acc + (food.sugar_g * food.quantity), 0);
     setTotalSugar(newTotal);
@@ -162,7 +156,8 @@ export default function EditEntryDialog({ entry }: { entry: GlucoseEntry }) {
     return result;
   };
   
-  const [state, formAction] = useActionState(clientAction, initialState);
+  // ✅ Perbaikan: Tambahkan underscore pada 'state' untuk menandakan tidak terpakai
+  const [, formAction] = useActionState(clientAction, initialState);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

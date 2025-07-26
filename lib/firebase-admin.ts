@@ -27,8 +27,13 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-  } catch (error: any) {
-    console.error('Firebase admin initialization error', error.stack);
+  } catch (error: unknown) { // ✅ Perbaikan: Ganti 'any' dengan 'unknown'
+    // ✅ Perbaikan: Tambahkan pengecekan tipe sebelum mengakses properti error
+    if (error instanceof Error) {
+      console.error('Firebase admin initialization error', error.stack);
+    } else {
+      console.error('An unknown error occurred during Firebase admin initialization', error);
+    }
     throw new Error('Gagal menginisialisasi Firebase Admin SDK. Periksa kembali service account key Anda.');
   }
 }

@@ -1,6 +1,7 @@
 // lib/actions/trackerActions.ts
 'use server';
 
+import { cache } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
@@ -10,7 +11,7 @@ import { getBloodSugarStatus, calculateAge } from '@/lib/utils';
 import { z } from 'zod';
 import { getUserProfile } from './userActions';
 
-// ... (Interface FoodItem dan GlucoseEntry tetap sama)
+// ... (Interface tetap sama)
 export interface FoodItem {
   id: string;
   name: string;
@@ -36,7 +37,6 @@ export type FormState = {
   error?: string;
 };
 
-// ... (Skema AddEntrySchema tetap sama)
 const AddEntrySchema = z.object({
   foods_consumed: z.string().min(3, { message: "Anda harus memilih minimal satu makanan." }),
   condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
@@ -46,28 +46,22 @@ const AddEntrySchema = z.object({
   activity: z.string().optional(),
 });
 
-
-// --- PERBAIKAN DI SINI ---
-// Menghapus `age_at_input` dari skema validasi update
 const UpdateEntrySchema = z.object({
     id: z.string(),
     food_name: z.string().min(1, { message: "Nama makanan tidak boleh kosong." }),
     sugar_g: z.coerce.number().min(0, { message: "Gula harus angka positif." }),
-    // age_at_input: z.coerce.number().min(1, { message: "Usia harus diisi." }), // <-- DIHAPUS
     condition: z.string().min(1, { message: "Kondisi harus dipilih." }),
     entry_date: z.string().min(1, { message: "Tanggal harus diisi." }),
     entry_time: z.string().min(1, { message: "Waktu harus diisi." }),
     mood: z.string().optional(),
     activity: z.string().optional(),
 });
-// -------------------------
 
 export async function getFoodsByNames(names: string[]): Promise<FoodItem[]> {
   if (!names || names.length === 0) return [];
   
   try {
     const foodsRef = collection(db, 'foods');
-    // Menggunakan query 'in' untuk mencari semua dokumen dengan nama yang cocok
     const q = query(
       foodsRef,
       where('name', 'in', names)
@@ -81,7 +75,7 @@ export async function getFoodsByNames(names: string[]): Promise<FoodItem[]> {
         id: doc.id,
         name: data.name,
         sugar_g: data.sugar_g,
-        quantity: 1 // Kuantitas default, akan diperbarui nanti
+        quantity: 1 
       });
     });
     return foods;
@@ -91,7 +85,6 @@ export async function getFoodsByNames(names: string[]): Promise<FoodItem[]> {
   }
 }
 
-// ... (fungsi searchFoods dan formatFoodName tetap sama)
 export async function searchFoods(searchQuery: string): Promise<FoodItem[]> {
   if (!searchQuery || searchQuery.length < 2) return [];
   const lowerCaseQuery = searchQuery.toLowerCase();
@@ -129,7 +122,7 @@ const formatFoodName = (foods: FoodItem[]): string => {
   ).join(', ');
 };
 
-// ... (fungsi addMealEntry tetap sama)
+// ✅ Perbaikan Tipe: Ubah 'any' menjadi 'FormState | null'
 export async function addMealEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
   const supabase = await createClient();
   const userProfile = await getUserProfile();
@@ -151,7 +144,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   let foods: FoodItem[];
   try {
     foods = JSON.parse(foods_consumed);
-  } catch (e) {
+  } catch { // <-- 'e' tidak digunakan, jadi bisa dihapus
     return { error: 'Data makanan tidak valid.' };
   }
 
@@ -187,8 +180,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
-// ... (fungsi getTrackerEntries tetap sama)
-export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]> {
+export const getTrackerEntries = cache(async (filter?: string): Promise<GlucoseEntry[]> => {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
@@ -204,7 +196,8 @@ export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]
     const today = new Date();
     today.setUTCHours(23, 59, 59, 999); 
 
-    let startDate = new Date();
+    // ✅ Perbaikan: Ubah 'let' menjadi 'const' karena tidak diubah lagi
+    const startDate = new Date();
     startDate.setUTCHours(0, 0, 0, 0);
 
     switch (filter) {
@@ -233,11 +226,9 @@ export async function getTrackerEntries(filter?: string): Promise<GlucoseEntry[]
       return [];
   }
   return data as GlucoseEntry[];
-}
+});
 
-
-// --- PERBAIKAN DI SINI ---
-// Memperbarui fungsi update untuk menghitung usia secara otomatis
+// ✅ Perbaikan Tipe: Ubah 'any' menjadi 'FormState | null'
 export async function updateTrackerEntry(prevState: FormState | null, formData: FormData): Promise<FormState> {
     const supabase = await createClient();
     const userProfile = await getUserProfile();
@@ -252,10 +243,8 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
       return { error: "Semua field wajib diisi dengan benar." };
     }
     
-    // `age_at_input` tidak lagi diambil dari form
     const { id, food_name, sugar_g, condition, entry_date, entry_time, mood, activity } = validatedFields.data;
     
-    // Hitung usia di server
     const age_at_input = calculateAge(userProfile.date_of_birth);
 
     const combinedDateTime = new Date(`${entry_date}T${entry_time}`);
@@ -270,7 +259,7 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
       .update({ 
         food_name, 
         sugar_g, 
-        age_at_input, // Gunakan usia yang dihitung di server
+        age_at_input,
         condition,
         status,
         created_at: combinedDateTime.toISOString(),
@@ -289,7 +278,6 @@ export async function updateTrackerEntry(prevState: FormState | null, formData: 
     return { success: 'Data berhasil diperbarui!' };
 }
 
-// ... (fungsi deleteTrackerEntry tetap sama)
 export async function deleteTrackerEntry(id: string): Promise<FormState> {
   const supabase = await createClient();
   const session = await auth();

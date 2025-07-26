@@ -18,9 +18,12 @@ async function getRoles() {
     return data || [];
 }
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
+// ✅ PERBAIKAN UNTUK NEXT.JS 15: params sekarang adalah Promise yang harus di-await
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params; // Await the params Promise
+    
     const [user, roles] = await Promise.all([
-        getUser(params.id),
+        getUser(id), // Gunakan id yang sudah di-await
         getRoles()
     ]);
 

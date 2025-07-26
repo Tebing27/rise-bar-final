@@ -8,8 +8,16 @@ import type { Query, DocumentData, QueryDocumentSnapshot } from 'firebase-admin/
 // -------------------------
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { unstable_cache as cache } from 'next/cache';
+
+// Define a proper type for Food data
+interface FoodData {
+  id: string;
+  name: string;
+  name_lowercase: string;
+  sugar_g: number;
+}
 
 const FoodSchema = z.object({
   id: z.string().optional(),
@@ -51,8 +59,11 @@ export const getFoods = cache(
       dataQuery = dataQuery.limit(pageSize);
       
       const pageDocsSnapshot = await dataQuery.get();
-      // --- PERBAIKAN DI SINI: Beri tipe pada parameter 'doc' ---
-      const foods: any[] = pageDocsSnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({ id: doc.id, ...doc.data() }));
+      // --- PERBAIKAN DI SINI: Gunakan tipe FoodData yang tepat ---
+      const foods: FoodData[] = pageDocsSnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as FoodData));
 
       return { foods, totalPages };
 
@@ -100,7 +111,8 @@ export async function addFood(prevState: FoodFormState, formData: FormData): Pro
     });
     revalidateFoodsCache();
     return { success: true, message: 'Makanan berhasil ditambahkan.' };
-  } catch (e) {
+  } catch (error) {
+    console.error("Error adding food:", error);
     return { success: false, message: 'Gagal menambahkan makanan.' };
   }
 }
@@ -119,7 +131,8 @@ export async function updateFood(prevState: FoodFormState, formData: FormData): 
         });
         revalidateFoodsCache();
         return { success: true, message: 'Makanan berhasil diupdate.' };
-    } catch (e) {
+    } catch (error) {
+        console.error("Error updating food:", error);
         return { success: false, message: 'Gagal mengupdate makanan.' };
     }
 }
@@ -131,7 +144,8 @@ export async function deleteFood(formData: FormData): Promise<FoodFormState> {
         await adminDb.collection('foods').doc(id).delete();
         revalidateFoodsCache();
         return { success: true, message: 'Makanan berhasil dihapus.' };
-    } catch (e) {
+    } catch (error) {
+        console.error("Error deleting food:", error);
         return { success: false, message: 'Gagal menghapus makanan.' };
     }
 }

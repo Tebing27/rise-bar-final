@@ -38,7 +38,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email, 
               name: user.name, 
               image: user.image,
-              role: (user.role as any).name,
+              // ✅ Perbaikan Tipe: Ubah '(any).name' menjadi 'string'
+              role: (user.role as { name: string }).name, 
               onboarding_complete: user.onboarding_complete
             };
         }
@@ -48,7 +49,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // Saat login awal
       if (user) {
         token.sub = user.id;
         token.role = user.role;
@@ -56,10 +56,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.onboarding_complete = user.onboarding_complete;
       }
 
-      // ✅ PERBAIKAN UTAMA:
-      // Setiap kali sesi diakses (misalnya oleh middleware),
-      // periksa kembali status onboarding terbaru dari database.
-      // Ini mencegah middleware menggunakan data sesi yang usang.
       if (token.sub) {
         try {
           const { data } = await supabaseAdmin

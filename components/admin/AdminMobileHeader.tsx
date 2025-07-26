@@ -25,7 +25,7 @@ export function AdminMobileHeader() {
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden">
       <Link href="/" className="flex items-center gap-2 font-semibold">
         <Package2 className="h-6 w-6 text-primary" />
-        <span className="">GlucoseTracker</span>
+        <span className="">Rise Bar</span>
       </Link>
       <div className="ml-auto">
         <Sheet>

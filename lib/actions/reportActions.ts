@@ -1,9 +1,10 @@
 // lib/actions/reportActions.ts
 'use server';
 
+import { cache } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { auth } from '@/lib/auth';
-import { type GlucoseEntry } from './trackerActions';
+// ✅ Perbaikan: Hapus impor 'GlucoseEntry' yang tidak terpakai
 
 // Menentukan struktur data yang akan kita tampilkan di laporan
 export interface ReportData {
@@ -19,7 +20,7 @@ export interface ReportData {
   topTriggerFoods: { food: string; count: number }[];
 }
 
-export async function getReportData(): Promise<ReportData | null> {
+export const getReportData = cache(async (): Promise<ReportData | null> => {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
@@ -77,4 +78,4 @@ export async function getReportData(): Promise<ReportData | null> {
     statusDistribution,
     topTriggerFoods,
   };
-}
+});

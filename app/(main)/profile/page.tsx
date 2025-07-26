@@ -4,7 +4,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { getUserProfile, updateUserProfile, UserProfile } from '@/lib/actions/userActions';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,8 +28,8 @@ function ProfileForm({ user }: { user: UserProfile }) {
   const [state, formAction] = useActionState(updateUserProfile, null);
 
   useEffect(() => {
-    if ((state as any)?.success) toast.success((state as any).message);
-    if (!(state as any)?.success && (state as any)?.message) toast.error((state as any).message);
+    if (state?.success) toast.success(state.message);
+    if (!state?.success && state?.message) toast.error(state.message);
   }, [state]);
 
   return (
@@ -37,13 +37,13 @@ function ProfileForm({ user }: { user: UserProfile }) {
       <div>
         <Label htmlFor="name">Nama Lengkap</Label>
         <Input id="name" name="name" defaultValue={user.name || ''} required className='mt-2'/>
-        {(state as any)?.errors?.name && <p className="text-red-500 text-xs mt-1">{(state as any).errors.name[0]}</p>}
+        {state?.errors?.name && <p className="text-red-500 text-xs mt-1">{state?.errors.name[0]}</p>}
       </div>
 
       <div>
         <Label htmlFor="date_of_birth">Tanggal Lahir</Label>
         <Input id="date_of_birth" name="date_of_birth" type="date" defaultValue={user.date_of_birth || ''} required className='mt-2'/>
-        {(state as any)?.errors?.date_of_birth && <p className="text-red-500 text-xs mt-1">{(state as any).errors.date_of_birth[0]}</p>}
+        {state?.errors?.date_of_birth && <p className="text-red-500 text-xs mt-1">{state?.errors.date_of_birth[0]}</p>}
       </div>
 
       <div>

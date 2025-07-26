@@ -13,8 +13,14 @@ import {
 } from 'recharts';
 import { type GlucoseEntry } from '@/lib/actions/trackerActions';
 
-// Komponen untuk Tooltip Kustom
-const CustomTooltip = ({ active, payload, label }: any) => {
+// ✅ Perbaikan Tipe: Berikan tipe yang lebih spesifik
+interface TooltipProps {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => { // <-- Gunakan tipe di sini
   if (active && payload && payload.length) {
     return (
       <div className="p-2 bg-background border rounded-md shadow-lg">
@@ -34,7 +40,6 @@ export default function TrackerChart({ data }: { data: GlucoseEntry[] }) {
 
   const yDomain = [60, 160];
 
-  // --- PERBAIKAN: Hapus kelas `h-80` ---
   return (
     <div className="h-[300px] w-full"> 
       <ResponsiveContainer width="100%" height="100%">
@@ -75,7 +80,6 @@ export default function TrackerChart({ data }: { data: GlucoseEntry[] }) {
           />
         </LineChart>
       </ResponsiveContainer>
-      {/* Legenda kustom telah dipindahkan */}
     </div>
   );
 }

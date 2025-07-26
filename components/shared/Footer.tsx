@@ -1,11 +1,11 @@
 // components/shared/Footer.tsx
 import { Instagram, Linkedin, MessageCircle } from 'lucide-react';
 import { getSiteContentAsMap } from '@/lib/content';
+import Link from 'next/link'; // <-- Tambahkan impor ini
 
 export async function Footer() {
   const content = await getSiteContentAsMap();
   return (
-    // ✅ PERBAIKAN: Menggunakan warna `bg-muted` untuk kontras yang lembut
     <footer className="bg-muted text-muted-foreground py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -29,9 +29,10 @@ export async function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-foreground">Tautan</h3>
             <ul className="space-y-2">
-              <li><a href="/about" className="hover:text-primary">Tentang</a></li>
-              <li><a href="/blog" className="hover:text-primary">Blog</a></li>
-              <li><a href="/login" className="hover:text-primary">Login</a></li>
+              {/* ✅ Perbaikan: Ganti <a> dengan <Link> untuk navigasi internal */}
+              <li><Link href="/about" className="hover:text-primary">Tentang</Link></li>
+              <li><Link href="/blog" className="hover:text-primary">Blog</Link></li>
+              <li><Link href="/login" className="hover:text-primary">Login</Link></li>
             </ul>
           </div>
           

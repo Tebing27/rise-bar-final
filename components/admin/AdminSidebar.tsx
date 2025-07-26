@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Home, Users, Utensils, FileText, Settings, Package2, LayoutDashboard, Palette } from 'lucide-react';
 import { LogoutButton } from '../auth/LogoutButton';
-import { Button } from '@/components/ui/button';
 
 const adminNavItems = [
   { title: "Beranda", href: "/", icon: LayoutDashboard },
@@ -28,7 +27,7 @@ export function AdminSidebar() {
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Package2 className="h-6 w-6 text-primary" />
-            <span className="">GlucoseTracker</span>
+            <span className="">Rise Bar</span>
           </Link>
         </div>
         <div className="flex-1">

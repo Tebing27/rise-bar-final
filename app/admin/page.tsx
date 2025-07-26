@@ -3,7 +3,7 @@ import { StatCard } from '@/components/admin/StatCard';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { Users, FileText, Utensils, MessageSquareQuote } from 'lucide-react';
+import { Users, FileText, MessageSquareQuote } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 

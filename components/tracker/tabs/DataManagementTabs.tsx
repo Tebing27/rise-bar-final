@@ -1,13 +1,26 @@
 // components/tracker/tabs/DataManagementTabs.tsx
+'use client'
 
+import dynamic from 'next/dynamic'; // <-- 1. Impor 'dynamic'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import TrackerForm from "@/components/tracker/TrackerForm";
 import { HistoryTab } from "@/components/tracker/HistoryTab";
 import { ReportTab } from "@/components/tracker/tabs/ReportTab";
-import TrackerChart from "@/components/tracker/TrackerChart";
 import { type GlucoseEntry } from "@/lib/actions/trackerActions";
-import { CustomLegend } from "./CustomLegend"; // <-- Impor legenda baru
+import { CustomLegend } from "./CustomLegend";
+
+// ✅ 2. Buat komponen dinamis untuk Chart
+const TrackerChart = dynamic(() => import("@/components/tracker/TrackerChart"), {
+  loading: () => <div className="h-[300px] w-full flex items-center justify-center"><p>Memuat grafik...</p></div>,
+  ssr: false, // Chart tidak perlu dirender di server
+});
+
+// ✅ 3. Buat komponen dinamis untuk Form
+const TrackerForm = dynamic(() => import("@/components/tracker/TrackerForm"), {
+  loading: () => <div className="py-10 flex items-center justify-center"><p>Memuat form...</p></div>,
+  ssr: false, // Form tidak perlu dirender di server
+});
+
 
 interface DataManagementTabsProps {
   entries: GlucoseEntry[];
@@ -21,12 +34,11 @@ export function DataManagementTabs({ entries }: DataManagementTabsProps) {
         <CardDescription>Visualisasi tren kesehatan Anda.</CardDescription>
       </CardHeader>
 
-      {/* --- PERBAIKAN TATA LETAK DI SINI --- */}
       <CardContent className="space-y-4">
+        {/* ✅ 4. Gunakan komponen chart yang sudah dinamis */}
         <TrackerChart data={entries} />
         <CustomLegend />
       </CardContent>
-      {/* ------------------------------------ */}
 
       <Tabs defaultValue="history" className="pt-0">
         <CardContent>
@@ -38,6 +50,7 @@ export function DataManagementTabs({ entries }: DataManagementTabsProps) {
         </CardContent>
         <TabsContent value="new">
           <CardContent>
+            {/* ✅ 5. Gunakan komponen form yang sudah dinamis */}
             <TrackerForm />
           </CardContent>
         </TabsContent>

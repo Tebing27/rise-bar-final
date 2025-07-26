@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner'; // <-- 'Toaster' yang tidak terpakai dihapus
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,7 +19,6 @@ function SubmitButton() {
   );
 }
 
-// Menghapus prop 'userAge' dari definisi komponen
 export default function TrackerForm() {
   const initialState: FormState | null = null;
   const [state, formAction] = useActionState(addMealEntry, initialState); 
@@ -31,9 +30,10 @@ export default function TrackerForm() {
   const [entryDateTime, setEntryDateTime] = useState({ date: '', time: '' });
 
   useEffect(() => {
-    if ((state as any)?.error) toast.error((state as any).error);
-    if ((state as any)?.success) {
-      toast.success((state as any).success);
+    // ✅ Perbaikan: Hapus '(state as any)' dan gunakan optional chaining 'state?'
+    if (state?.error) toast.error(state.error);
+    if (state?.success) {
+      toast.success(state.success);
       setSelectedFoods([]);
       setQuery('');
       setEntryDateTime({ date: '', time: '' });
@@ -83,7 +83,8 @@ export default function TrackerForm() {
     <>
       <form
         action={formAction}
-        key={(state as any)?.success ? Date.now() : 'static-key'}
+        // ✅ Perbaikan: Hapus '(state as any)' dan gunakan optional chaining 'state?'
+        key={state?.success ? Date.now() : 'static-key'}
         className="space-y-6 mt-5"
       >
         <input type="hidden" name="foods_consumed" value={JSON.stringify(selectedFoods)} />
@@ -145,8 +146,6 @@ export default function TrackerForm() {
             <Input id="entry_time" name="entry_time" type="time" className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
           </div>
         </div>
-
-        {/* Input Usia sudah dihapus dari sini */}
 
         <div>
             <Label htmlFor="condition" className='mb-5'>Kondisi</Label>

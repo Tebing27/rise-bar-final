@@ -8,9 +8,9 @@ import { calculateReadingTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Clock, UserCircle } from 'lucide-react';
 
-// ✍️ FUNGSI UNTUK METADATA YANG LEBIH LENGKAP
+// ✅ PERBAIKAN UNTUK NEXT.JS 15: `params` sekarang adalah Promise yang harus di-await
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = await params; // Await the params Promise
   
   const { data: post } = await db
     .from('posts')
@@ -18,34 +18,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .eq('slug', slug)
     .single();
 
-  // Jika post tidak ada, tampilkan metadata default
+  // ... (rest of the function is correct)
   if (!post) {
     return {
       title: 'Artikel Tidak Ditemukan | GlucoseTracker',
       description: 'Sayangnya, artikel yang Anda cari tidak ada.',
-      robots: 'noindex, nofollow', // Jangan index halaman 404
+      robots: 'noindex, nofollow',
     };
   }
-
-  // Buat deskripsi yang lebih optimal
-  const cleanContent = post.content?.replace(/<[^>]*>/g, ''); // Hapus HTML tags
+  const cleanContent = post.content?.replace(/<[^>]*>/g, '');
   const description = cleanContent 
     ? cleanContent.substring(0, 155).trim() + '...'
     : `Baca artikel "${post.title}" di GlucoseTracker Blog. Tips dan informasi kesehatan terpercaya.`;
-
-  // Extract keywords dari tags
   const keywords = post.tags?.map((tag: { name: string }) => tag.name).join(', ') || '';
-  
-  // URL canonical
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const canonicalUrl = `${siteUrl}/blog/${slug}`;
-
-  // Return objek metadata yang lengkap
   return {
     title: `${post.title} | GlucoseTracker Blog`,
     description: description,
-    
-    // Open Graph (Facebook, LinkedIn, dll)
     openGraph: {
       title: post.title,
       description: description,
@@ -64,28 +54,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ] : [],
       locale: 'id_ID',
     },
-    
-    // Twitter Card
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: description,
       images: post.image_url ? [post.image_url] : [],
-      creator: '@glucosetracker', // Ganti dengan Twitter handle Anda
+      creator: '@glucosetracker',
     },
-    
-    // Meta tags tambahan
     keywords: keywords,
     authors: [{ name: post.author_name || 'GlucoseTracker Team' }],
     creator: post.author_name || 'GlucoseTracker Team',
     publisher: 'GlucoseTracker',
-    
-    // Canonical URL
     alternates: {
       canonical: canonicalUrl,
     },
-    
-    // Robot instructions
     robots: {
       index: true,
       follow: true,
@@ -97,8 +79,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         'max-snippet': -1,
       },
     },
-    
-    // Tambahan untuk artikel
     other: {
       'article:published_time': post.published_at,
       'article:author': post.author_name || 'GlucoseTracker Team',
@@ -108,9 +88,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-// 📄 KOMPONEN UNTUK MENAMPILKAN HALAMAN
+// ✅ PERBAIKAN UNTUK NEXT.JS 15: Page component juga harus await params
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug } = await params; // Await the params Promise
   const session = await auth();
 
   const { data: post } = await db
@@ -128,7 +108,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   const readingTime = calculateReadingTime(post.content || '');
-  // Structured data untuk Google (JSON-LD)
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -155,10 +134,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     }
   };
 
-  // Return JSX untuk render halaman
   return (
     <>
-      {/* Structured Data JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

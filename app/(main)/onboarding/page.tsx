@@ -13,6 +13,18 @@ import { Toaster, toast } from 'sonner';
 import { useEffect } from 'react';
 import Image from 'next/image';
 
+// ✅ Perbaikan: Definisikan tipe untuk form state
+type OnboardingState = {
+  success?: boolean;
+  message?: string;
+  errors?: {
+    date_of_birth?: string[];
+    gender?: string[];
+    diabetes_type?: string[];
+  };
+} | null;
+
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -23,11 +35,13 @@ function SubmitButton() {
 }
 
 export default function OnboardingPage() {
-  const [state, formAction] = useActionState(completeOnboarding, null);
+  // ✅ Perbaikan: Gunakan tipe yang sudah didefinisikan
+  const [state, formAction] = useActionState<OnboardingState, FormData>(completeOnboarding, null);
 
   useEffect(() => {
-    if ((state as any)?.message && !(state as any).success) {
-      toast.error((state as any).message);
+    // ✅ Perbaikan: Akses properti tanpa 'as any'
+    if (state?.message && !state.success) {
+      toast.error(state.message);
     }
   }, [state]);
 
@@ -39,7 +53,7 @@ export default function OnboardingPage() {
           <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
               <Image
-                src="/mascot_berjelajah_arbie.png" // Pastikan gambar ada di /public
+                src="/mascot_berjelajah_arbie.png"
                 alt="Mascot Onboarding"
                 width={120}
                 height={120}
@@ -54,7 +68,8 @@ export default function OnboardingPage() {
               <div>
                 <Label htmlFor="date_of_birth">Tanggal Lahir</Label>
                 <Input id="date_of_birth" name="date_of_birth" type="date" className='mt-4' required />
-                {(state as any)?.errors?.date_of_birth && <p className="text-red-500 text-xs mt-1">{(state as any).errors.date_of_birth[0]}</p>}
+                {/* ✅ Perbaikan: Akses properti tanpa 'as any' */}
+                {state?.errors?.date_of_birth && <p className="text-red-500 text-xs mt-1">{state.errors.date_of_birth[0]}</p>}
               </div>
 
               <div>
@@ -68,7 +83,8 @@ export default function OnboardingPage() {
                     <SelectItem value="Wanita">Wanita</SelectItem>
                   </SelectContent>
                 </Select>
-                 {(state as any)?.errors?.gender && <p className="text-red-500 text-xs mt-1">{(state as any).errors.gender[0]}</p>}
+                 {/* ✅ Perbaikan: Akses properti tanpa 'as any' */}
+                 {state?.errors?.gender && <p className="text-red-500 text-xs mt-1">{state.errors.gender[0]}</p>}
               </div>
 
               <div>
@@ -85,7 +101,8 @@ export default function OnboardingPage() {
                     <SelectItem value="Gestational">Gestational</SelectItem>
                   </SelectContent>
                 </Select>
-                 {(state as any)?.errors?.diabetes_type && <p className="text-red-500 text-xs mt-1">{(state as any).errors.diabetes_type[0]}</p>}
+                 {/* ✅ Perbaikan: Akses properti tanpa 'as any' */}
+                 {state?.errors?.diabetes_type && <p className="text-red-500 text-xs mt-1">{state.errors.diabetes_type[0]}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

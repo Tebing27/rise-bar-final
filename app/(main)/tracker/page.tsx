@@ -1,6 +1,6 @@
 // app/(main)/tracker/page.tsx
 
-import React, { Suspense } from "react";
+import React from "react";
 import Link from "next/link";
 import { getTrackerEntries } from "@/lib/actions/trackerActions";
 import { auth } from "@/lib/auth";
@@ -13,8 +13,6 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
 
-// --- TAMBAHKAN BARIS INI UNTUK MENGATASI ERROR ---
-export const dynamic = "force-dynamic";
 // ---------------------------------------------
 
 export default async function TrackerPage({

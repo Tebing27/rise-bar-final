@@ -8,51 +8,67 @@ export default auth((req) => {
   const userRole = req.auth?.user?.role;
   const isOnboardingComplete = !!req.auth?.onboarding_complete;
 
-  // Mendefinisikan rute-rute
+  // --- Mendefinisikan Rute ---
+  const isPublicRoute = 
+    nextUrl.pathname.startsWith('/login') || 
+    nextUrl.pathname.startsWith('/register') ||
+    nextUrl.pathname.startsWith('/forgot-password');
+    
   const onboardingRoute = '/onboarding';
   const isAdminArea = nextUrl.pathname.startsWith('/admin');
-  // Mendefinisikan semua rute yang hanya untuk pengguna biasa
-  const isUserSpecificArea = 
+  const isUserArea = 
     nextUrl.pathname.startsWith('/tracker') || 
-    nextUrl.pathname.startsWith('/onboarding') ||
+    nextUrl.pathname === onboardingRoute ||
     nextUrl.pathname.startsWith('/reports') ||
     nextUrl.pathname.startsWith('/profile');
 
-  // --- ATURAN AKSES BARU ---
+  // --- Aturan Akses ---
 
-  // Aturan 1: Jika pengguna adalah 'admin', arahkan mereka keluar dari halaman pengguna biasa.
-  if (isLoggedIn && userRole === 'admin' && isUserSpecificArea) {
-    // Arahkan admin ke dashboard admin utama mereka.
+  // Aturan 1: Jika sudah login, jangan biarkan akses halaman login/register.
+  if (isLoggedIn && isPublicRoute) {
+    const redirectUrl = userRole === 'admin' ? '/admin' : '/tracker';
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
+  }
+
+  // Aturan 2: Jika belum login, paksa ke halaman login saat akses area terproteksi.
+  if (!isLoggedIn && (isUserArea || isAdminArea)) {
+      return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  // Aturan 3: Jika admin, jangan biarkan akses halaman khusus user biasa.
+  if (isLoggedIn && userRole === 'admin' && isUserArea) {
     return NextResponse.redirect(new URL('/admin', req.url));
   }
 
-  // Aturan 2: Jika pengguna BUKAN 'admin', jangan izinkan mereka masuk ke area admin.
+  // Aturan 4: Jika bukan admin, jangan biarkan akses area admin.
   if (isLoggedIn && userRole !== 'admin' && isAdminArea) {
-     return NextResponse.redirect(new URL('/tracker', req.url)); // Arahkan ke dashboard mereka
+     return NextResponse.redirect(new URL('/tracker', req.url));
   }
   
-  // Aturan 3: Paksa pengguna baru (bukan admin) untuk menyelesaikan onboarding.
+  // Aturan 5: Paksa user baru (bukan admin) untuk menyelesaikan onboarding.
   if (isLoggedIn && userRole !== 'admin' && !isOnboardingComplete && nextUrl.pathname !== onboardingRoute) {
     return NextResponse.redirect(new URL(onboardingRoute, req.url));
   }
 
-  // Aturan 4: Jika pengguna yang sudah onboarding mencoba akses halaman onboarding lagi.
+  // Aturan 6: Jika user yang sudah onboarding mencoba akses halaman onboarding lagi.
   if (isLoggedIn && isOnboardingComplete && nextUrl.pathname === onboardingRoute) {
     return NextResponse.redirect(new URL('/tracker', req.url));
-  }
-
-  // Aturan 5: Jika pengguna belum login, jangan izinkan akses ke halaman yang dilindungi.
-  if (!isLoggedIn && (isUserSpecificArea || isAdminArea)) {
-      return NextResponse.redirect(new URL('/login', req.url));
   }
 
   // Jika tidak ada aturan yang cocok, izinkan permintaan.
   return NextResponse.next();
 });
 
+// ✅ OPTIMASI: Middleware hanya berjalan di halaman yang relevan untuk meningkatkan performa.
 export const config = {
   matcher: [
-    // Jalankan middleware di semua rute kecuali yang spesifik di bawah ini
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/tracker/:path*',
+    '/reports/:path*',
+    '/profile/:path*',
+    '/onboarding',
+    '/admin/:path*',
   ],
 };

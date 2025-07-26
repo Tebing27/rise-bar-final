@@ -22,6 +22,12 @@ import {
 import { Pencil, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+// ✅ Perbaikan: Definisikan tipe spesifik untuk form state
+type RecommendationFormState = {
+  success?: string;
+  error?: { [key: string]: string[] | undefined; } | string;
+} | null;
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -34,7 +40,8 @@ function SubmitButton() {
 export function EditRecommendationDialog({ recommendation }: { recommendation: Recommendation }) {
   const [open, setOpen] = useState(false);
   
-  const clientAction = async (prevState: any, formData: FormData) => {
+  // ✅ Perbaikan: Berikan tipe pada prevState
+  const clientAction = async (prevState: RecommendationFormState, formData: FormData) => {
     const result = await upsertRecommendation(prevState, formData);
     if (result?.success) {
       toast.success(result.success);
@@ -48,7 +55,8 @@ export function EditRecommendationDialog({ recommendation }: { recommendation: R
     return result;
   };
 
-  const [state, formAction] = useActionState(clientAction, null);
+  // ✅ Perbaikan: Gunakan tipe yang sudah didefinisikan dan tandai state sebagai tidak terpakai
+  const [, formAction] = useActionState(clientAction, null);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

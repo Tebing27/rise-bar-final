@@ -3,7 +3,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
-import { addFood, updateFood, type FoodFormState } from '@/lib/actions/foodActions';
+import { addFood, updateFood, type FoodFormState } from '@/lib/actions/foodActions'; // <-- Tipe diimpor di sini
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,11 +28,18 @@ function SubmitButton({ isNew }: { isNew: boolean }) {
 
 export function FoodForm({ food }: { food?: Food }) {
     const action = food ? updateFood : addFood;
-    const [state, formAction] = useActionState(action, { success: false });
+    
+    // ✅ Perbaikan 1: Berikan tipe 'FoodFormState' pada useActionState
+    const [state, formAction] = useActionState<FoodFormState, FormData>(action, { success: false });
 
     useEffect(() => {
         if (state.message) {
-            state.success ? toast.success(state.message) : toast.error(state.message);
+            // ✅ Perbaikan 2: Ganti ternary operator dengan if/else
+            if (state.success) {
+                toast.success(state.message);
+            } else {
+                toast.error(state.message);
+            }
         }
     }, [state]);
 

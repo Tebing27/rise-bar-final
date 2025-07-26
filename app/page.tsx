@@ -2,7 +2,6 @@
 import { getSiteContentAsMap } from '@/lib/content';
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Hero } from '@/components/shared/Hero';
 import { Features } from '@/components/shared/Features';
 import { CTA } from '@/components/shared/CTA';

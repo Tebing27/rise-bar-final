@@ -1,7 +1,7 @@
 // components/tracker/tabs/ReportTab.tsx
 import { getReportData } from '@/lib/actions/reportActions';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertTriangle, TrendingDown, TrendingUp, PieChart } from 'lucide-react';
+import { CardContent } from '@/components/ui/card';
+import { AlertTriangle, PieChart } from 'lucide-react';
 
 export async function ReportTab() {
   const reportData = await getReportData();

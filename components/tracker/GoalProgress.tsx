@@ -1,5 +1,5 @@
 // components/tracker/GoalProgress.tsx
-import { getActiveUserGoals, type UserGoal } from '@/lib/actions/goalActions';
+import { getActiveUserGoals } from '@/lib/actions/goalActions'; // <-- Tipe UserGoal dihapus dari sini
 import { type GlucoseEntry } from '@/lib/actions/trackerActions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Target, Trophy } from 'lucide-react';
@@ -45,7 +45,8 @@ export async function GoalProgress({ entries }: { entries: GlucoseEntry[] }) {
             let currentValue = 0;
             let progress = 0;
             let label = '';
-            let unit = 'mg/dL';
+            // ✅ Perbaikan: Ubah 'let' menjadi 'const' karena nilainya tidak pernah berubah.
+            const unit = 'mg/dL';
             
             if (goal.target_type === 'average_glucose') {
                 currentValue = stats.average;

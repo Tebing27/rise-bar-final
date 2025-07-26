@@ -28,11 +28,17 @@ function SubmitButton({ isNew }: { isNew: boolean }) {
 
 export function FoodForm({ food }: { food?: Food }) {
     const action = food ? updateFood : addFood;
-    const [state, formAction] = useActionState(action, { success: false });
+    // ✅ Perbaikan 1: Gunakan tipe 'FoodFormState' yang diimpor
+    const [state, formAction] = useActionState<FoodFormState, FormData>(action, { success: false });
 
     useEffect(() => {
         if (state.message) {
-            state.success ? toast.success(state.message) : toast.error(state.message);
+            // ✅ Perbaikan 2: Ganti ternary operator dengan if/else untuk menghindari warning
+            if (state.success) {
+                toast.success(state.message);
+            } else {
+                toast.error(state.message);
+            }
         }
     }, [state]);
 

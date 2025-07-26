@@ -1,6 +1,7 @@
 // lib/actions/recommendationActions.ts
 'use server';
 
+import { cache } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
@@ -15,6 +16,13 @@ export interface Recommendation {
   category: string;
 }
 
+// ✅ Perbaikan: Definisikan tipe untuk form state
+export type RecommendationFormState = {
+  success?: string;
+  error?: { [key: string]: string[] | undefined; } | string;
+} | null;
+
+
 const RecommendationSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(5, { message: "Judul minimal 5 karakter." }),
@@ -22,7 +30,6 @@ const RecommendationSchema = z.object({
   category: z.enum(['Tinggi', 'Normal', 'Rendah'], { message: "Kategori harus dipilih." }),
 });
 
-// Fungsi getRecommendations, upsertRecommendation, dan deleteRecommendation tidak perlu diubah
 export async function getRecommendations(searchQuery?: string) {
   const supabase = await createClient();
   let query = supabase.from('recommendations').select('*').order('created_at', { ascending: false });
@@ -40,7 +47,8 @@ export async function getRecommendations(searchQuery?: string) {
   return data;
 }
 
-export async function upsertRecommendation(prevState: any, formData: FormData) {
+// ✅ Perbaikan: Gunakan tipe RecommendationFormState pada prevState
+export async function upsertRecommendation(prevState: RecommendationFormState, formData: FormData) {
   const validatedFields = RecommendationSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     return { error: validatedFields.error.flatten().fieldErrors };
@@ -66,10 +74,7 @@ export async function deleteRecommendation(id: string) {
   return { success: 'Rekomendasi berhasil dihapus.' };
 }
 
-// ==================================================================
-// FUNGSI INI DIUBAH DENGAN ATURAN PRIORITAS FINAL ANDA
-// ==================================================================
-export async function getAnalysisRecommendation(): Promise<Recommendation[]> {
+export const getAnalysisRecommendation = cache(async (): Promise<Recommendation[]> => {
     const supabase = await createClient();
     const session = await auth();
     const user = session?.user;
@@ -85,7 +90,6 @@ export async function getAnalysisRecommendation(): Promise<Recommendation[]> {
         return [];
     }
     
-    // Hitung jumlah untuk setiap status
     const statusCounts = allEntries.reduce((acc, entry) => {
         const status = entry.status as 'Tinggi' | 'Normal' | 'Rendah';
         if (status) {
@@ -94,20 +98,15 @@ export async function getAnalysisRecommendation(): Promise<Recommendation[]> {
         return acc;
     }, {} as Record<'Tinggi' | 'Normal' | 'Rendah', number>);
 
-    // Buat Set untuk memeriksa keberadaan status dengan mudah
     const userStatuses = new Set(Object.keys(statusCounts));
     
     let targetCategories: string[];
 
-    // --- IMPLEMENTASI LOGIKA PRIORITAS BARU ---
     if (userStatuses.has('Tinggi') && userStatuses.has('Normal')) {
-        // Aturan #2 & #3: Jika ada 'Tinggi' dan 'Normal', prioritaskan 'Tinggi'.
         targetCategories = ['Tinggi'];
     } else if (userStatuses.has('Normal') && userStatuses.has('Rendah')) {
-        // Aturan #1: Jika ada 'Normal' dan 'Rendah' (tapi tidak ada 'Tinggi'), prioritaskan 'Normal'.
         targetCategories = ['Normal'];
     } else {
-        // Aturan #4 (Fallback): Jika tidak ada kombinasi di atas, cari status dominan.
         const priority = ['Tinggi', 'Rendah', 'Normal'] as const;
         let dominantStatus: 'Tinggi' | 'Normal' | 'Rendah' = 'Normal';
         let maxCount = 0;
@@ -121,7 +120,6 @@ export async function getAnalysisRecommendation(): Promise<Recommendation[]> {
         }
         targetCategories = [dominantStatus];
     }
-    // --- AKHIR LOGIKA PRIORITAS ---
 
     try {
         const { data, error: recError } = await supabase
@@ -140,11 +138,9 @@ export async function getAnalysisRecommendation(): Promise<Recommendation[]> {
         console.error("Error fetching recommendations:", e);
         return [];
     }
-}
-// ==================================================================
+});
 
-
-export async function getPersonalizedInsights(): Promise<string[]> {
+export const getPersonalizedInsights = cache(async (): Promise<string[]> => {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
@@ -185,4 +181,4 @@ export async function getPersonalizedInsights(): Promise<string[]> {
   }
   
   return insights;
-}
+});

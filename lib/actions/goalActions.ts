@@ -1,6 +1,7 @@
 // lib/actions/goalActions.ts
 'use server';
 
+import { cache } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
@@ -14,12 +15,19 @@ export interface UserGoal {
   is_active: boolean;
 }
 
+// ✅ Perbaikan: Definisikan tipe untuk form state
+export type GoalFormState = {
+  success?: string;
+  error?: string;
+} | null;
+
 const GoalSchema = z.object({
   target_type: z.enum(['average_glucose', 'max_glucose']),
   target_value: z.coerce.number().min(50, 'Target harus minimal 50.').max(300, 'Target tidak boleh lebih dari 300.'),
 });
 
-export async function upsertUserGoal(prevState: any, formData: FormData) {
+// ✅ Perbaikan: Gunakan tipe GoalFormState pada prevState
+export async function upsertUserGoal(prevState: GoalFormState, formData: FormData) {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
@@ -60,7 +68,7 @@ export async function upsertUserGoal(prevState: any, formData: FormData) {
   return { success: 'Target baru berhasil disimpan!' };
 }
 
-export async function getActiveUserGoals(): Promise<UserGoal[]> {
+export const getActiveUserGoals = cache(async (): Promise<UserGoal[]> => {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
@@ -74,9 +82,8 @@ export async function getActiveUserGoals(): Promise<UserGoal[]> {
     .eq('is_active', true);
     
   if (error) {
-    // Peningkatan logging untuk menampilkan pesan error yang lebih jelas
     console.error("Error fetching goals:", error.message || error);
     return [];
   }
   return data as UserGoal[];
-}
+});

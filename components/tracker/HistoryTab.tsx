@@ -4,9 +4,14 @@ import { type GlucoseEntry } from "@/lib/actions/trackerActions";
 import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DateFilter } from "@/components/tracker/DateFilter";
-import EditEntryDialog from "@/components/tracker/EditEntryDialog";
 import { DeleteEntryButton } from "@/components/tracker/DeleteEntryButton";
 import { TrackerActions } from "@/components/tracker/TrackerActions";
+import dynamic from 'next/dynamic';
+
+const EditEntryDialog = dynamic(() => import('@/components/tracker/EditEntryDialog'), {
+  loading: () => <p>Loading...</p>, // Tampilkan ini saat komponen sedang diunduh
+  ssr: false // Komponen ini tidak perlu dirender di server
+});
 
 interface HistoryTabProps {
   entries: GlucoseEntry[];

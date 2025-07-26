@@ -43,12 +43,10 @@ const OnboardingSchema = z.object({
   date_of_birth: z.string().min(1, 'Tanggal lahir wajib diisi.'),
   gender: z.string().min(1, 'Jenis kelamin wajib dipilih.'),
   diabetes_type: z.string().min(1, 'Tipe diabetes wajib dipilih.'),
-  // Mengizinkan string kosong dan mengubahnya nanti
   height_cm: z.string().optional(),
   weight_kg: z.string().optional(),
 });
 
-// Skema baru untuk update profil
 const ProfileUpdateSchema = z.object({
     name: z.string().min(3, 'Nama minimal 3 karakter.'),
     date_of_birth: z.string().min(1, 'Tanggal lahir wajib diisi.'),
@@ -60,12 +58,13 @@ const ProfileUpdateSchema = z.object({
 
 
 export type FormState = {
-  success: boolean;
+  // ✅ Perbaikan: Properti 'success' dijadikan opsional agar cocok dengan tipe di client component
+  success?: boolean;
   message?: string;
   errors?: { [key: string]: string[] | undefined; };
 };
 
-export async function completeOnboarding(prevState: any, formData: FormData) {
+export async function completeOnboarding(prevState: FormState | null, formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) return { success: false, message: 'Anda harus login.' };
 
@@ -78,7 +77,6 @@ export async function completeOnboarding(prevState: any, formData: FormData) {
 
   const dataToUpdate = {
     ...rest,
-    // ✅ PERBAIKAN: Ubah string kosong menjadi null agar bisa disimpan di database
     height_cm: height_cm ? parseInt(height_cm, 10) : null,
     weight_kg: weight_kg ? parseFloat(weight_kg) : null,
     onboarding_complete: true,
@@ -94,8 +92,7 @@ export async function completeOnboarding(prevState: any, formData: FormData) {
   redirect('/tracker');
 }
 
-// Fungsi untuk memperbarui profil pengguna dari halaman profil
-export async function updateUserProfile(prevState: any, formData: FormData): Promise<FormState> {
+export async function updateUserProfile(prevState: FormState | null, formData: FormData): Promise<FormState> {
     const session = await auth();
     if (!session?.user?.id) return { success: false, message: 'Anda harus login.' };
 
