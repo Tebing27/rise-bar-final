@@ -13,7 +13,7 @@ interface GoalsTabsProps {
 
 export function GoalsTabs({ entries }: GoalsTabsProps) {
   return (
-    <Card>
+    <Card className="bg-purple-50 dark:bg-purple-900/20">
         <Tabs defaultValue="progress">
             <CardHeader>
                 <CardTitle>Target Anda</CardTitle>

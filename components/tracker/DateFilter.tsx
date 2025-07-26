@@ -27,7 +27,8 @@ export function DateFilter() {
   };
 
   return (
-    <div className="flex items-center gap-2">
+
+    <div className="flex items-center gap-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800">
         <Label htmlFor="date-filter" className="text-sm flex-shrink-0">Tampilkan:</Label>
         <Select
             onValueChange={handleFilterChange}

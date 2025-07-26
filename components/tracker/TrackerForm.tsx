@@ -95,6 +95,7 @@ export default function TrackerForm() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ketik nama makanan..."
+            className='w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800'
             autoComplete="off"
           />
           {searchResults.length > 0 && (
@@ -137,11 +138,11 @@ export default function TrackerForm() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="entry_date" className='mb-5'>Tanggal</Label>
-            <Input id="entry_date" name="entry_date" type="date" value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required />
+            <Input id="entry_date" name="entry_date" type="date" className='w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800' value={entryDateTime.date} onChange={e => setEntryDateTime(prev => ({ ...prev, date: e.target.value }))} required />
           </div>
           <div>
             <Label htmlFor="entry_time" className='mb-5'>Waktu</Label>
-            <Input id="entry_time" name="entry_time" type="time" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
+            <Input id="entry_time" name="entry_time" type="time" className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800" value={entryDateTime.time} onChange={e => setEntryDateTime(prev => ({ ...prev, time: e.target.value }))} required />
           </div>
         </div>
 
@@ -150,7 +151,7 @@ export default function TrackerForm() {
         <div>
             <Label htmlFor="condition" className='mb-5'>Kondisi</Label>
             <Select name="condition" defaultValue="Setelah Makan">
-                <SelectTrigger>
+                <SelectTrigger className='bg-card dark:bg-input'>
                     <SelectValue placeholder="Pilih kondisi" />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,7 +165,7 @@ export default function TrackerForm() {
         <div>
             <Label htmlFor="mood" className='mb-5'>Bagaimana perasaan Anda?</Label>
             <Select name="mood">
-                <SelectTrigger>
+                <SelectTrigger className='bg-card dark:bg-input'>
                     <SelectValue placeholder="Pilih mood (opsional)..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -178,7 +179,7 @@ export default function TrackerForm() {
 
         <div>
             <Label htmlFor="activity" className='mb-5'>Aktivitas Fisik Hari Ini</Label>
-            <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit (opsional)" />
+            <Input id="activity" name="activity" type="text" placeholder="cth: Jalan santai 30 menit (opsional)" className='w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800' />
         </div>
 
         <SubmitButton />

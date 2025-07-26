@@ -35,12 +35,12 @@ export default async function TrackerPage({
         <TrackerHeader userName={userName} />
 
         {entries.length === 0 ? (
-           <Card className="flex flex-col items-center justify-center text-center p-12 min-h-[400px]">
+           <Card className="bg-indigo-50 dark:bg-indigo-900/30 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">
               <CardTitle className="text-2xl font-semibold">Mulai Perjalanan Kesehatan Anda</CardTitle>
               <CardDescription className="mt-2 max-w-md">
                   Anda belum memiliki catatan apapun. Klik tombol di bawah untuk mulai mencatat dan melihat analisis kesehatan Anda.
               </CardDescription>
-              <Link href="/tracker/new" className="mt-6">
+              <Link href="/tracker" className="mt-6">
                   <Button size="lg">Catat Data Pertama Anda</Button>
               </Link>
           </Card>

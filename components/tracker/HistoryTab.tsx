@@ -26,7 +26,7 @@ export function HistoryTab({ entries }: HistoryTabProps) {
         <DateFilter />
         <TrackerActions entries={entries} />
       </div>
-      <div className="border rounded-md">
+      <div className="border rounded-md w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800">
         <Table>
           <TableHeader>
             <TableRow>

@@ -14,7 +14,7 @@ interface InsightsTabsProps {
 
 export function InsightsTabs({ entries }: InsightsTabsProps) {
   return (
-    <Card>
+    <Card className="bg-yellow-50 dark:bg-yellow-900/20">
       <Tabs defaultValue="highlight">
         <CardHeader>
             <CardTitle>Wawasan & Analisis</CardTitle>

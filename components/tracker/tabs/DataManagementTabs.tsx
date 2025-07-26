@@ -15,7 +15,7 @@ interface DataManagementTabsProps {
 
 export function DataManagementTabs({ entries }: DataManagementTabsProps) {
   return (
-    <Card>
+    <Card className="bg-green-50 dark:bg-green-900/20">
       <CardHeader>
         <CardTitle>Grafik Gula Darah</CardTitle>
         <CardDescription>Visualisasi tren kesehatan Anda.</CardDescription>
@@ -31,7 +31,7 @@ export function DataManagementTabs({ entries }: DataManagementTabsProps) {
       <Tabs defaultValue="history" className="pt-0">
         <CardContent>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="new">Input Catatan</TabsTrigger>
+            <TabsTrigger value="new">Catat</TabsTrigger>
             <TabsTrigger value="history">Riwayat</TabsTrigger>
             <TabsTrigger value="report">Laporan</TabsTrigger>
           </TabsList>
