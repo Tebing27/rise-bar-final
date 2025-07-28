@@ -17,8 +17,6 @@ export function Navbar() {
   const userRole = session?.user?.role;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // ✅ Perbaikan: Mengganti useState menjadi const karena nilainya statis.
-  // Ini akan menghilangkan warning 'setLogoUrl' and 'setLogoText' is defined but never used.
   const logoUrl = '/logo.webp';
   const logoText = 'Rise Bar';
   
@@ -30,16 +28,51 @@ export function Navbar() {
   const isHomePage = pathname === '/';
   const blogHref = isHomePage ? '/#blog' : '/blog';
 
+  // ✅ LOGIKA BARU: Tentukan tombol dashboard/profil berdasarkan lokasi saat ini
+  const getDashboardButton = () => {
+    // Jika user adalah admin, selalu tampilkan Dashboard Admin
+    if (userRole === 'admin') {
+      return {
+        href: '/admin',
+        label: 'Dashboard Admin'
+      };
+    }
+    
+    // Jika sedang di halaman tracker/dashboard, tampilkan tombol Profil
+    if (pathname.startsWith('/tracker') || pathname === '/dashboard') {
+      return {
+        href: '/profile',
+        label: 'Profil'
+      };
+    }
+    
+    // Jika sedang di halaman profil, tampilkan tombol Dashboard
+    if (pathname.startsWith('/profile')) {
+      return {
+        href: '/tracker',
+        label: 'Dashboard'
+      };
+    }
+    
+    // Default: tampilkan Dashboard untuk halaman lain
+    return {
+      href: '/tracker',
+      label: 'Dashboard'
+    };
+  };
+
   const publicLinks = [
     { href: '/', label: 'Beranda' },
     ...(isHomePage ? [{ href: '/#about', label: 'About' }] : []),
      { href: blogHref, label: 'Blog' },
   ];
   
+  // ✅ PERBAIKAN: Update authLinks untuk menggunakan logika dinamis
+  const dashboardButton = getDashboardButton();
   const authLinks = [
     ...publicLinks,
-    { href: '/tracker', label: 'Dashboard' },
-    { href: '/profile', label: 'Profil' },
+    dashboardButton, // Menggunakan tombol dinamis
+    // Hapus duplikasi profil karena sudah termasuk di dashboardButton
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -89,8 +122,17 @@ export function Navbar() {
             )}
             {status === 'authenticated' && (
               <>
-                <Link href={userRole === 'admin' ? '/admin' : '/tracker'}>
-                  <Button size="sm" variant="ghost">Dashboard</Button>
+                {/* ✅ IMPLEMENTASI BARU: Gunakan tombol dinamis */}
+                <Link href={dashboardButton.href}>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className={cn(
+                      pathname === dashboardButton.href && 'bg-muted text-primary'
+                    )}
+                  >
+                    {dashboardButton.label}
+                  </Button>
                 </Link>
                 <LogoutButton />
               </>

@@ -34,6 +34,7 @@ function ProfileForm({ user }: { user: UserProfile }) {
 
   return (
     <form action={formAction} className="space-y-6">
+      {/* ... field form lainnya tetap sama ... */}
       <div>
         <Label htmlFor="name">Nama Lengkap</Label>
         <Input id="name" name="name" defaultValue={user.name || ''} required className='mt-2'/>
@@ -86,9 +87,10 @@ function ProfileForm({ user }: { user: UserProfile }) {
         </div>
       </div>
 
-      <div className="pt-2 flex justify-end gap-2">
+      {/* ✅ PERBAIKAN DI SINI */}
+      <div className="pt-2 flex flex-col sm:flex-row sm:justify-end gap-2">
         <Link href="/tracker">        
-          <Button variant="secondary">Batal</Button>
+          <Button variant="secondary" className="w-full sm:w-auto">Batal</Button>
         </Link>
         <SubmitButton />
       </div>

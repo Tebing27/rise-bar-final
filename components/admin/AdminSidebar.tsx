@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Users, Utensils, FileText, Settings, Package2, LayoutDashboard, Palette } from 'lucide-react';
+import { Home, Users, Utensils, FileText, Settings, LayoutDashboard, Palette } from 'lucide-react';
 import { LogoutButton } from '../auth/LogoutButton';
 
 const adminNavItems = [
@@ -26,7 +26,6 @@ export function AdminSidebar() {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Package2 className="h-6 w-6 text-primary" />
             <span className="">Rise Bar</span>
           </Link>
         </div>

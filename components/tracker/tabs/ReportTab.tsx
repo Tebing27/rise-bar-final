@@ -1,11 +1,9 @@
 // components/tracker/tabs/ReportTab.tsx
-import { getReportData } from '@/lib/actions/reportActions';
 import { CardContent } from '@/components/ui/card';
 import { AlertTriangle, PieChart } from 'lucide-react';
+import { type ReportData } from '@/lib/actions/reportActions';
 
-export async function ReportTab() {
-  const reportData = await getReportData();
-
+export function ReportTab({ reportData }: { reportData: ReportData | null }) {
   if (!reportData) {
     return (
       <div className="text-center py-12">

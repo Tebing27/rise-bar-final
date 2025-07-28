@@ -12,6 +12,9 @@ import { TrackerHeader } from "@/components/tracker/TrackerHeader";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
+import { AIChat } from "@/components/tracker/AIChat"; // <-- 1. Impor komponen AI
+import { AI } from "@/app/action"; // <-- 2. Impor provider AI
+import { getReportData } from "@/lib/actions/reportActions"; // ✅ Impor fungsi dan tipe data laporan
 
 // ---------------------------------------------
 
@@ -23,12 +26,16 @@ export default async function TrackerPage({
   // Await searchParams sebelum digunakan
   const resolvedSearchParams = await searchParams;
   const dateFilter = resolvedSearchParams?.filter;
-  const session = await auth();
-  const entries = await getTrackerEntries(dateFilter);
+  const [session, entries, reportData] = await Promise.all([
+    auth(),
+    getTrackerEntries(dateFilter),
+    getReportData()
+  ]);
   const userName = session?.user?.name || 'Pengguna';
 
   return (
     <>
+    <AI>
       <Toaster position="top-center" richColors />
       <div className="flex-1 space-y-8 p-4 md:p-8 pt-4">
         <TrackerHeader userName={userName} />
@@ -53,7 +60,7 @@ export default async function TrackerPage({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <DataManagementTabs entries={entries} />
+              <DataManagementTabs entries={entries} reportData={reportData} />
             </div>
 
             <div className="space-y-8">
@@ -62,7 +69,9 @@ export default async function TrackerPage({
             </div>
           </div>
         )}
+        <AIChat />
       </div>
+      </AI>
     </>
   );
 }

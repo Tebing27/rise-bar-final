@@ -1,13 +1,14 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
-// 1. Impor dan konfigurasikan bundle analyzer
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// 2. Definisikan konfigurasi Next.js Anda
 const nextConfig: NextConfig = {
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',
@@ -17,9 +18,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+
+  // ✅ TAMBAHKAN INI
+  compiler: {
+    // Hapus semua console.log kecuali console.error di mode produksi
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
 };
 
-// 3. Bungkus konfigurasi Anda dengan bundle analyzer
 module.exports = withBundleAnalyzer(nextConfig);
-
-// HAPUS BARIS INI -> export default nextConfig;
