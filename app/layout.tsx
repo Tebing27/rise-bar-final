@@ -7,7 +7,7 @@ import { Navbar } from '@/components/shared/Navbar';
 // import { Footer } from '@/components/shared/Footer';
 import { getSiteContentAsMap } from '@/lib/content';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContentAsMap();

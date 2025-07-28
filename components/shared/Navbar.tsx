@@ -19,7 +19,7 @@ export function Navbar() {
   
   // ✅ Perbaikan: Mengganti useState menjadi const karena nilainya statis.
   // Ini akan menghilangkan warning 'setLogoUrl' and 'setLogoText' is defined but never used.
-  const logoUrl = '/logo.png';
+  const logoUrl = '/logo.webp';
   const logoText = 'Rise Bar';
   
   // Logika utama: Jika sedang di halaman admin, jangan render Navbar sama sekali.

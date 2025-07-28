@@ -11,7 +11,7 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
           <Image
-              src="/mascot_berjelajah_arbie.png" // Pastikan gambar ada di /public
+              src="/mascot_berjelajah_arbie.webp" // Pastikan gambar ada di /public
               alt="Mascot Onboarding"
               width={120}
               height={120}

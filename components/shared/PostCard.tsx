@@ -20,7 +20,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   // Tentukan URL gambar, gunakan maskot sebagai fallback jika tidak ada image_url
-  const imageUrl = post.image_url || '/mascot_berjelajah_arbie.png'; // <-- Gambar dari folder /public
+  const imageUrl = post.image_url || '/mascot_berjelajah_arbie.webp'; // <-- Gambar dari folder /public
 
   return (
     <Link href={`/blog/${post.slug}`} className="block group">

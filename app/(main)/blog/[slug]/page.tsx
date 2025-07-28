@@ -113,7 +113,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     "@type": "Article",
     "headline": post.title,
     "description": post.content?.replace(/<[^>]*>/g, '').substring(0, 155),
-    "image": post.image_url || `${process.env.NEXT_PUBLIC_SITE_URL}/default-image.png`,
+    "image": post.image_url || `${process.env.NEXT_PUBLIC_SITE_URL}/mascot_bertanya.webp`,
     "author": {
       "@type": "Person",
       "name": post.author_name || "GlucoseTracker Team"
@@ -123,7 +123,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       "name": "GlucoseTracker",
       "logo": {
         "@type": "ImageObject",
-        "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`
+        "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.webp`
       }
     },
     "datePublished": post.published_at,

@@ -41,7 +41,7 @@ export function TrackerHeader({ userName }: TrackerHeaderProps) {
           <Icon className="w-8 h-8 text-yellow-500" />
           {text}, {userName}!
           <Image
-              src="/mascot_menyapa.png" // Pastikan gambar ada di folder /public
+              src="/mascot_menyapa.webp" // Pastikan gambar ada di folder /public
               alt="Mascot Menyapa"
               width={80}
               height={80}

@@ -35,7 +35,6 @@ export const getFoods = cache(
   async ({ searchQuery = '', page = 1, pageSize = 10 }: { searchQuery?: string; page?: number; pageSize?: number; }) => {
     try {
       const foodsRef = adminDb.collection('foods');
-      // --- PERBAIKAN DI SINI: Beri tipe eksplisit ---
       let baseQuery: Query<DocumentData> = foodsRef;
 
       if (searchQuery) {
@@ -59,7 +58,6 @@ export const getFoods = cache(
       dataQuery = dataQuery.limit(pageSize);
       
       const pageDocsSnapshot = await dataQuery.get();
-      // --- PERBAIKAN DI SINI: Gunakan tipe FoodData yang tepat ---
       const foods: FoodData[] = pageDocsSnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({ 
         id: doc.id, 
         ...doc.data() 

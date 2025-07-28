@@ -53,7 +53,7 @@ export default function OnboardingPage() {
           <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
               <Image
-                src="/mascot_berjelajah_arbie.png"
+                src="/mascot_berjelajah_arbie.webp"
                 alt="Mascot Onboarding"
                 width={120}
                 height={120}

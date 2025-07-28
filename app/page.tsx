@@ -1,14 +1,16 @@
-// app/page.tsx
 import { getSiteContentAsMap } from '@/lib/content';
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
 import { Hero } from '@/components/shared/Hero';
-// import dynamic from 'next/dynamic';
-import { Features } from '@/components/shared/Features';
-import { CTA } from '@/components/shared/CTA';
 import { PostCard } from '@/components/shared/PostCard';
 import { Footer } from '@/components/shared/Footer';
-import { About } from '@/components/shared/About';
+import dynamic from 'next/dynamic';
+
+// Komponen-komponen ini tidak memerlukan data server, jadi kita muat secara dinamis
+const About = dynamic(() => import('@/components/shared/About').then(mod => mod.About));
+const Features = dynamic(() => import('@/components/shared/Features').then(mod => mod.Features));
+const CTA = dynamic(() => import('@/components/shared/CTA').then(mod => mod.CTA));
+
 
 async function getPopularPosts() {
   const { data, error } = await db
@@ -16,7 +18,7 @@ async function getPopularPosts() {
     .select('*')
     .eq('is_published', true)
     .eq('is_popular', true)
-    .limit(3); // Menampilkan 3 artikel agar lebih fokus
+    .limit(3);
 
   if (error) {
     console.error('Error fetching popular posts:', error);
@@ -36,8 +38,8 @@ export default async function HomePage() {
       <Hero
         headline={content.home_headline || 'Pantau Gula Darah, Raih Hidup Sehat.'}
         subheadline={content.home_subheadline || 'Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda dengan lebih baik setiap hari.'}
-        heroImageUrl={content.home_hero_image} // Kirim URL gambar ke komponen Hero
-        pillText={content.home_pill_text || '✨ Rise Bar – Aplikasi Kelola Diabetes'} // <-- Tambahkan prop ini
+        heroImageUrl={content.home_hero_image}
+        pillText={content.home_pill_text || '✨ Rise Bar – Aplikasi Kelola Diabetes'}
       />
       
       <About
@@ -69,11 +71,12 @@ export default async function HomePage() {
                 <PostCard key={post.id} post={post} />
               ))}
             </div>
-             <div className="mt-12 text-center">
-               <Link href="/blog" className="text-primary hover:underline font-semibold">
+            <div className="mt-12 text-center">
+               {/* PERBAIKAN KONTRAS WARNA DI SINI */}
+               <Link href="/blog" className="text-teal-700 hover:underline font-semibold">
                 Lihat Semua Artikel &rarr;
                </Link>
-             </div>
+            </div>
           </div>
         </section>
       )}

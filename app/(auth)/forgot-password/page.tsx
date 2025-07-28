@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Image 
-                src="/mascot_bertanya_arbie.png" 
+                src="/mascot_bertanya_arbie.webp" 
                 alt="Mascot Rise Bar"
                 width={100}
                 height={100}

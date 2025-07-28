@@ -12,7 +12,7 @@ export default function LoginPage() {
           {/* --- Tambahkan Gambar di Sini --- */}
           <div className="flex justify-center mb-4">
             <Image 
-              src="/mascot_berjelajah_arbie.png" // Pastikan gambar ada di /public
+              src="/mascot_berjelajah_arbie.webp" // Pastikan gambar ada di /public
               alt="Mascot Rise Bar"
               width={100}
               height={100}

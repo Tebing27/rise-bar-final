@@ -36,7 +36,7 @@ export default async function TrackerPage({
         {entries.length === 0 ? (
            <Card className="bg-indigo-50 dark:bg-indigo-900/30 flex flex-col items-center justify-center text-center p-12 min-h-[400px]">
             <Image
-                src="/mascot_bertanya.png" // Pastikan gambar ada di folder /public
+                src="/mascot_bertanya.webp" // Pastikan gambar ada di folder /public
                 alt="Mascot Bertanya"
                 width={150}
                 height={150}

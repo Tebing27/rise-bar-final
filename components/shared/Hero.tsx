@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,7 +27,7 @@ export function Hero({ headline, subheadline, heroImageUrl, pillText }: HeroProp
             </p>
             <div className="mt-10 flex items-center justify-center lg:justify-start gap-x-6">
               <Link href="/register">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-accent font-semibold px-8 py-6 shadow-lg transition-transform transform hover:scale-105">
+                <Button size="lg" className="bg-teal-700 text-primary-foreground hover:bg-accent font-semibold px-8 py-6 shadow-lg transition-transform transform hover:scale-105">
                   Mulai Gratis
                 </Button>
               </Link>
@@ -46,7 +44,6 @@ export function Hero({ headline, subheadline, heroImageUrl, pillText }: HeroProp
               height={1080}
               sizes="(max-width: 768px) 100vw, 50vw"
               quality={90}
-              className="rounded-lg"
               priority
             />
           </div>

@@ -33,11 +33,10 @@ export function About({aboutImageUrl, aboutTitle, aboutDescription, aboutCta, ab
           {/* Kolom Gambar */}
           <div className="flex justify-center animate-in fade-in zoom-in-95 duration-700">
             <Image
-              src={aboutImageUrl || "/risebar_hero.png"} // Menggunakan gambar yang sudah ada
+              src={aboutImageUrl || "/risebar_hero.webp"} // Menggunakan gambar yang sudah ada
               alt="Tentang Glucose Tracker"
               width={500}
               height={500}
-              className="rounded-lg"
             />
           </div>
 

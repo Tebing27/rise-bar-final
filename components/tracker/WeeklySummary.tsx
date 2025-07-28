@@ -29,7 +29,7 @@ export async function WeeklySummary() {
         {/* --- 2. Tambahkan div pembungkus dan gambar --- */}
         <div className="flex items-start gap-4">
           <Image 
-            src="/mascot_berjelajah.png"
+            src="/mascot_berjelajah.webp"
             alt="Mascot Berjelajah"
             width={80}
             height={80}
