@@ -40,7 +40,7 @@ export function Hero({ headline, subheadline, heroImageUrl, pillText }: HeroProp
           </div>
           <div className="flex justify-center animate-in fade-in slide-in-from-top-8 duration-700">
             <Image 
-              src={heroImageUrl || "/risebar_hero.png"}
+              src={heroImageUrl || "/risebar_hero.webp"}
               alt="Glucose Tracker Illustration"
               width={1920}
               height={1080}

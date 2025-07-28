@@ -3,6 +3,7 @@ import { getSiteContentAsMap } from '@/lib/content';
 import { db } from '@/lib/supabase';
 import Link from 'next/link';
 import { Hero } from '@/components/shared/Hero';
+// import dynamic from 'next/dynamic';
 import { Features } from '@/components/shared/Features';
 import { CTA } from '@/components/shared/CTA';
 import { PostCard } from '@/components/shared/PostCard';

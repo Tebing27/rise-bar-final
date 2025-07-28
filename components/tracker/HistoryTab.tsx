@@ -5,13 +5,20 @@ import { CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DateFilter } from "@/components/tracker/DateFilter";
 import { DeleteEntryButton } from "@/components/tracker/DeleteEntryButton";
-import { TrackerActions } from "@/components/tracker/TrackerActions";
 import dynamic from 'next/dynamic';
 
 const EditEntryDialog = dynamic(() => import('@/components/tracker/EditEntryDialog'), {
   loading: () => <p>Loading...</p>, // Tampilkan ini saat komponen sedang diunduh
   ssr: false // Komponen ini tidak perlu dirender di server
 });
+
+const DynamicTrackerActions = dynamic(
+  () => import('@/components/tracker/TrackerActions').then((mod) => mod.TrackerActions), 
+  {
+    loading: () => <div className="h-8 w-32 bg-muted rounded-md animate-pulse" />,
+    ssr: false
+  }
+);
 
 interface HistoryTabProps {
   entries: GlucoseEntry[];
@@ -29,7 +36,7 @@ export function HistoryTab({ entries }: HistoryTabProps) {
     <CardContent className="pt-0"> 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
         <DateFilter />
-        <TrackerActions entries={entries} />
+        <DynamicTrackerActions entries={entries} />
       </div>
       <div className="border rounded-md w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-800">
         <Table>

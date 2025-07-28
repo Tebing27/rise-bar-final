@@ -8,10 +8,11 @@ import { HistoryTab } from "@/components/tracker/HistoryTab";
 import { ReportTab } from "@/components/tracker/tabs/ReportTab";
 import { type GlucoseEntry } from "@/lib/actions/trackerActions";
 import { CustomLegend } from "./CustomLegend";
+import { ChartSkeleton } from '../ChartSkeleton';
 
 // ✅ 2. Buat komponen dinamis untuk Chart
 const TrackerChart = dynamic(() => import("@/components/tracker/TrackerChart"), {
-  loading: () => <div className="h-[300px] w-full flex items-center justify-center"><p>Memuat grafik...</p></div>,
+  loading: () => <ChartSkeleton />,
   ssr: false, // Chart tidak perlu dirender di server
 });
 

@@ -180,12 +180,18 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
-export const getTrackerEntries = cache(async (filter?: string): Promise<GlucoseEntry[]> => {
+export const getTrackerEntries = cache(async (filter?: string,
+  page: number = 1, // Tambahkan parameter halaman
+  limit: number = 20 // Tentukan batas per halaman
+): Promise<GlucoseEntry[]> => {
   const supabase = await createClient();
   const session = await auth();
   const user = session?.user;
 
   if (!user) return [];
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
 
   let query = supabase
     .from('glucose_entries')
@@ -195,6 +201,8 @@ export const getTrackerEntries = cache(async (filter?: string): Promise<GlucoseE
   if (filter && filter !== 'all') {
     const today = new Date();
     today.setUTCHours(23, 59, 59, 999); 
+
+    query = query.order('created_at', { ascending: false }).range(from, to);
 
     // ✅ Perbaikan: Ubah 'let' menjadi 'const' karena tidak diubah lagi
     const startDate = new Date();
