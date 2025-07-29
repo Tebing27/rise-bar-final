@@ -1,85 +1,63 @@
 // components/tracker/TrackerChart.tsx
 'use client';
 
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
+import { createChart, ColorType, LineStyle, LineSeries, Time } from 'lightweight-charts';
+import React, { useEffect, useRef } from 'react';
 import { type GlucoseEntry } from '@/lib/actions/trackerActions';
 
-// ✅ Perbaikan Tipe: Berikan tipe yang lebih spesifik
-interface TooltipProps {
-  active?: boolean;
-  payload?: { value: number }[];
-  label?: string;
-}
-
-const CustomTooltip = ({ active, payload, label }: TooltipProps) => { // <-- Gunakan tipe di sini
-  if (active && payload && payload.length) {
-    return (
-      <div className="p-2 bg-background border rounded-md shadow-lg">
-        <p className="font-bold">{`${label}`}</p>
-        <p className="text-primary">{`Gula: ${payload[0].value} mg/dL`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 export default function TrackerChart({ data }: { data: GlucoseEntry[] }) {
-  const formattedData = data.map(entry => ({
-    time: new Date(entry.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-    gula: entry.sugar_g,
-  })).reverse(); 
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  const yDomain = [60, 160];
+  useEffect(() => {
+    if (!chartContainerRef.current || data.length === 0) return;
 
-  return (
-    <div className="h-[300px] w-full"> 
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={formattedData}
-          margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-        >
-          <defs>
-            <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#10b981" stopOpacity={1}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis 
-            dataKey="time" 
-            tick={{ fontSize: 12 }} 
-            axisLine={false} 
-            tickLine={false}
-          />
-          <YAxis 
-            domain={yDomain} 
-            ticks={[60, 85, 110, 135, 160]} 
-            tick={{ fontSize: 12 }} 
-            axisLine={false} 
-            tickLine={false} 
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine y={140} stroke="red" strokeDasharray="3 3" />
-          <ReferenceLine y={70} stroke="orange" strokeDasharray="3 3" />
-          <Line 
-            type="monotone" 
-            dataKey="gula" 
-            stroke="url(#lineGradient)" 
-            strokeWidth={3}
-            dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#ffffff' }}
-            activeDot={{ r: 8, fill: '#10b981', strokeWidth: 2, stroke: '#ffffff' }} 
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
+    };
+
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#6b7280', // text-gray-500
+      },
+      grid: {
+        vertLines: { color: '#e5e7eb' }, // border-gray-200
+        horzLines: { color: '#e5e7eb' },
+      },
+      width: chartContainerRef.current.clientWidth,
+      height: 300,
+    });
+
+    // ✅ PERBAIKAN: Menggunakan addSeries() dengan LineSeries yang diimport
+    const lineSeries = chart.addSeries(LineSeries, {
+      color: '#10b981', // emerald-500
+      lineWidth: 3,
+      lineStyle: LineStyle.Solid,
+    });
+
+    const formattedData = data
+      .map(entry => ({
+        time: (new Date(entry.created_at).getTime() / 1000) as Time, // Unix timestamp dengan tipe Time
+        value: entry.sugar_g,
+      }))
+      .sort((a, b) => (a.time as number) - (b.time as number)); // Pastikan data diurutkan berdasarkan waktu
+
+    lineSeries.setData(formattedData);
+
+    // Tambahkan garis referensi
+    lineSeries.createPriceLine({ price: 140, color: 'red', lineStyle: LineStyle.Dashed, title: 'Tinggi' });
+    lineSeries.createPriceLine({ price: 70, color: 'orange', lineStyle: LineStyle.Dashed, title: 'Rendah' });
+
+    chart.timeScale().fitContent();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
+    };
+  }, [data]);
+
+  return <div ref={chartContainerRef} className="h-[300px] w-full" />;
 }
