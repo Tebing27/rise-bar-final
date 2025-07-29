@@ -53,7 +53,7 @@ export default async function TrackerPage({
               <CardDescription className="mt-2 max-w-md">
                   Anda belum memiliki catatan apapun. Klik tombol di bawah untuk mulai mencatat dan melihat analisis kesehatan Anda.
               </CardDescription>
-              <Link href="/tracker" className="mt-6">
+              <Link href="/tracker/new" className="mt-6">
                   <Button size="lg">Catat Data Pertama Anda</Button>
               </Link>
           </Card>

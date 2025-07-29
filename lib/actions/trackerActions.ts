@@ -10,6 +10,7 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { getBloodSugarStatus, calculateAge } from '@/lib/utils';
 import { z } from 'zod';
 import { getUserProfile } from './userActions';
+import {redirect} from 'next/navigation';
 
 // ... (Interface tetap sama)
 export interface FoodItem {
@@ -177,6 +178,7 @@ export async function addMealEntry(prevState: FormState | null, formData: FormDa
   }
 
   revalidatePath('/tracker');
+  redirect('/tracker')
   return { success: 'Data makanan berhasil disimpan!' };
 }
 
