@@ -4,7 +4,7 @@ import { getSiteContentAsMap } from '@/lib/content'; // Import fungsi untuk meng
 
 interface Post {
   slug: string;
-  updated_at: string;
+  created_at: string;
   image_url?: string | null;
 }
 
@@ -45,13 +45,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 2. Halaman Blog Dinamis
   const { data: posts, error } = await db
     .from('posts')
-    .select('slug, updated_at, image_url')
+    .select('slug, created_at, image_url')
     .eq('is_published', true);
   
   const postUrls = posts ? posts.map((post: Post) => {
     const sitemapEntry: MetadataRoute.Sitemap[0] = {
       url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: new Date(post.updated_at),
+      lastModified: new Date(post.created_at),
     };
     if (post.image_url) {
       sitemapEntry.images = [post.image_url];
