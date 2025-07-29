@@ -16,6 +16,7 @@ const adminNavItems = [
   { title: "Makanan", href: "/admin/foods", icon: Utensils },
   { title: "Blog", href: "/admin/blogs", icon: FileText },
   { title: "Rekomendasi", href: "/admin/recommendations", icon: Settings },
+  { title: "Konten", href: "/admin/content", icon: Palette },
 ];
 
 export function AdminMobileHeader() {
