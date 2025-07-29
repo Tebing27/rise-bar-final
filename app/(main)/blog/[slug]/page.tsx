@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // ... (rest of the function is correct)
   if (!post) {
     return {
-      title: 'Artikel Tidak Ditemukan | GlucoseTracker',
+      title: 'Artikel Tidak Ditemukan | Rise Bar',
       description: 'Sayangnya, artikel yang Anda cari tidak ada.',
       robots: 'noindex, nofollow',
     };
@@ -29,21 +29,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const cleanContent = post.content?.replace(/<[^>]*>/g, '');
   const description = cleanContent 
     ? cleanContent.substring(0, 155).trim() + '...'
-    : `Baca artikel "${post.title}" di GlucoseTracker Blog. Tips dan informasi kesehatan terpercaya.`;
+    : `Baca artikel "${post.title}" di Rise Bar Blog. Tips dan informasi kesehatan terpercaya.`;
   const keywords = post.tags?.map((tag: { name: string }) => tag.name).join(', ') || '';
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const canonicalUrl = `${siteUrl}/blog/${slug}`;
   return {
-    title: `${post.title} | GlucoseTracker Blog`,
+    title: `${post.title} | Rise Bar Blog`,
     description: description,
     openGraph: {
       title: post.title,
       description: description,
       url: canonicalUrl,
-      siteName: 'GlucoseTracker',
+      siteName: 'Rise Bar',
       type: 'article',
       publishedTime: post.published_at,
-      authors: [post.author_name || 'GlucoseTracker Team'],
+      authors: [post.author_name || 'Rise Bar Team'],
       images: post.image_url ? [
         {
           url: post.image_url,
@@ -59,12 +59,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: post.title,
       description: description,
       images: post.image_url ? [post.image_url] : [],
-      creator: '@glucosetracker',
+      creator: '@risebar.pkmk',
     },
     keywords: keywords,
-    authors: [{ name: post.author_name || 'GlucoseTracker Team' }],
-    creator: post.author_name || 'GlucoseTracker Team',
-    publisher: 'GlucoseTracker',
+    authors: [{ name: post.author_name || 'Rise Bar Team' }],
+    creator: post.author_name || 'Rise Bar Team',
+    publisher: 'Rise Bar',
     alternates: {
       canonical: canonicalUrl,
     },
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     other: {
       'article:published_time': post.published_at,
-      'article:author': post.author_name || 'GlucoseTracker Team',
+      'article:author': post.author_name || 'Rise Bar Team',
       'article:section': 'Health & Wellness',
       'article:tag': keywords,
     },
@@ -116,11 +116,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     "image": post.image_url || `${process.env.NEXT_PUBLIC_SITE_URL}/mascot_bertanya.webp`,
     "author": {
       "@type": "Person",
-      "name": post.author_name || "GlucoseTracker Team"
+      "name": post.author_name || "Rise Bar Team"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "GlucoseTracker",
+      "name": "Rise Bar",
       "logo": {
         "@type": "ImageObject",
         "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.webp`
@@ -164,7 +164,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <UserCircle className="h-4 w-4" />
-              <span>Oleh {post.author_name || 'Tim GlucoseTracker'}</span>
+              <span>Oleh {post.author_name || 'Tim Rise Bar'}</span>
             </div>
             <time dateTime={post.published_at}>
               {new Date(post.published_at).toLocaleDateString('id-ID', {

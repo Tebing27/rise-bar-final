@@ -1,8 +1,9 @@
 // app/(auth)/forgot-password/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
+import { sendPasswordResetLink, type PasswordFormState } from '@/lib/actions/passwordActions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -12,26 +13,28 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Kirim Link Reset
+    </Button>
+  );
+}
+
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const initialState: PasswordFormState = null; // State awal bisa null
+  const [state, formAction] = useActionState(sendPasswordResetLink, initialState);
 
-  const handleResetPassword = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    });
-    
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Email untuk reset password telah dikirim. Silakan periksa inbox Anda.');
+  useEffect(() => {
+    if (state?.success) {
+      toast.success(state.success);
     }
-  };
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <>
@@ -53,7 +56,7 @@ export default function ForgotPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form action={formAction} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -61,15 +64,10 @@ export default function ForgotPasswordPage() {
                   name="email"
                   type="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@email.com"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Kirim Link Reset
-              </Button>
+              <SubmitButton />
             </form>
              <div className="mt-4 text-center text-sm">
               Ingat password Anda?{' '}

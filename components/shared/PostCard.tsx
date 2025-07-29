@@ -61,7 +61,7 @@ export function PostCard({ post }: PostCardProps) {
           <div className="relative mt-6 flex items-center gap-x-4">
             <div className="text-sm leading-6">
               <p className="font-semibold text-foreground">
-                Oleh {post.author_name || 'Tim GlucoseTracker'}
+                Oleh {post.author_name || 'Tim Rise Bar'}
               </p>
             </div>
           </div>

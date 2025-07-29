@@ -1,9 +1,10 @@
 // app/auth/update-password/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { useEffect, Suspense, useActionState } from 'react'; // <-- Import useActionState dari 'react'
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useFormStatus } from 'react-dom';
+import { resetPassword, type PasswordFormState } from '@/lib/actions/passwordActions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -12,47 +13,56 @@ import { toast, Toaster } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
-export default function UpdatePasswordPage() {
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Simpan Password Baru
+    </Button>
+  );
+}
 
-  useEffect(() => {
-    // onAuthStateChange sekarang mengembalikan listener, bukan data session langsung
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        // Logika ini benar: kita hanya peduli pada event 'PASSWORD_RECOVERY'
-        // dan mengabaikan redirect jika ada sesi sementara.
-        if (event === 'SIGNED_IN' && session) {
-          router.replace('/tracker');
+function UpdatePasswordForm() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const token = searchParams.get('token');
+
+    const initialState: PasswordFormState = null;
+    const [state, formAction] = useActionState(resetPassword, initialState);
+
+    useEffect(() => {
+        if (state?.success) {
+            toast.success(state.success);
+            setTimeout(() => {
+                router.push('/login');
+            }, 2000);
         }
-      }
+        if (state?.error) {
+            toast.error(state.error);
+        }
+    }, [state, router]);
+
+    return (
+        <form action={formAction} className="space-y-4">
+            <input type="hidden" name="token" value={token || ''} />
+            <div className="space-y-2">
+                <Label htmlFor="password">Password Baru</Label>
+                <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Minimal 6 karakter"
+                />
+            </div>
+            <SubmitButton />
+        </form>
     );
+}
 
-    return () => {
-      // Unsubscribe dilakukan pada object subscription dari listener
-      authListener.subscription.unsubscribe();
-    };
-  }, [router, supabase]);
-
-  const handleUpdatePassword = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-
-    const { error } = await supabase.auth.updateUser({ password: password });
-
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Password berhasil diperbarui! Anda akan diarahkan ke halaman login.');
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    }
-  };
-
+export default function UpdatePasswordPage() {
   return (
     <>
       <Toaster position="top-center" richColors />
@@ -61,7 +71,7 @@ export default function UpdatePasswordPage() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Image 
-                src="/mascot_berjelajah_arbie.png" // Menggunakan gambar yang direkomendasikan
+                src="/mascot_berjelajah_arbie.webp" // Ganti dengan gambar yang sesuai
                 alt="Mascot Rise Bar"
                 width={100}
                 height={100}
@@ -73,25 +83,9 @@ export default function UpdatePasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">Password Baru</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimal 6 karakter"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Simpan Password Baru
-              </Button>
-            </form>
+            <Suspense fallback={<div>Memuat...</div>}>
+                <UpdatePasswordForm />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

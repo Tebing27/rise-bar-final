@@ -17,7 +17,7 @@ const EditRecommendationDialog = dynamic(() =>
       Memuat...
     </Button>
   ),
-  ssr: false,
+  ssr: false, // Hanya muat di sisi klien
 });
 
 export default function RecommendationList({ recommendations }: { recommendations: Recommendation[] }) {

@@ -12,11 +12,12 @@ const EditEntryDialog = dynamic(() => import('@/components/tracker/EditEntryDial
   ssr: false // Komponen ini tidak perlu dirender di server
 });
 
+// Jadikan TrackerActions dinamis
 const DynamicTrackerActions = dynamic(
   () => import('@/components/tracker/TrackerActions').then((mod) => mod.TrackerActions), 
   {
-    loading: () => <div className="h-8 w-32 bg-muted rounded-md animate-pulse" />,
-    ssr: false
+    loading: () => <div className="h-8 w-32 bg-muted rounded-md animate-pulse" />, // Tampilkan placeholder
+    ssr: false // Hanya muat di klien
   }
 );
 

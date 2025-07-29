@@ -1,8 +1,16 @@
 // app/(main)/tracker/new/page.tsx
-import TrackerForm from "@/components/tracker/TrackerForm";
+'use client'; // <-- TAMBAHKAN BARIS INI
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/sonner";
 import Image from "next/image";
+import dynamic from 'next/dynamic';
+
+// Jadikan TrackerForm dinamis
+const TrackerForm = dynamic(() => import("@/components/tracker/TrackerForm"), {
+  loading: () => <p className="text-center py-8">Memuat form...</p>,
+  ssr: false,
+});
 
 export default function NewTrackerEntryPage() {
   return (

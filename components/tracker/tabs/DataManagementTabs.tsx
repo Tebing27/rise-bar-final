@@ -13,14 +13,14 @@ import { ChartSkeleton } from '../ChartSkeleton';
 
 // Komponen dinamis untuk Chart
 const TrackerChart = dynamic(() => import("@/components/tracker/TrackerChart"), {
-  loading: () => <ChartSkeleton />,
-  ssr: false,
+  loading: () => <ChartSkeleton />, // Tampilkan skeleton saat grafik dimuat
+  ssr: false, // Hanya muat di sisi klien
 });
 
 // Komponen dinamis untuk Form
 const TrackerForm = dynamic(() => import("@/components/tracker/TrackerForm"), {
   loading: () => <div className="py-10 flex items-center justify-center"><p>Memuat form...</p></div>,
-  ssr: false,
+  ssr: false, // Hanya muat di sisi klien
 });
 
 interface DataManagementTabsProps {
