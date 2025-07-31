@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { CldUploadWidget, type CloudinaryUploadWidgetResults } from 'next-cloudinary';
-import { Image as ImageIcon, Info } from 'lucide-react'; // Import ikon Info
+import { Image as ImageIcon, Info } from 'lucide-react';
 import { updateSiteContent } from '@/lib/actions/contentActions';
 import { toast } from 'sonner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ContentItem {
   content_key: string;
@@ -47,7 +47,6 @@ export function ContentForm({ contents }: { contents: ContentItem[] }) {
           <CardTitle>Editor Konten Website</CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
-          {/* --- PANDUAN UNTUK ADMIN DITAMBAHKAN DI SINI --- */}
           <Alert>
             <Info className="h-4 w-4" />
             <AlertTitle>Panduan Pengelolaan Konten</AlertTitle>
@@ -56,7 +55,7 @@ export function ContentForm({ contents }: { contents: ContentItem[] }) {
                 <h4 className="font-semibold">Gambar (Logo, Favicon, Hero)</h4>
                 <ul className="list-disc pl-5 text-xs text-muted-foreground mt-1 space-y-1">
                   <li>Format Terbaik: Gunakan PNG dengan latar belakang transparan untuk Logo & Favicon. Gunakan JPG untuk gambar besar seperti Hero.</li>
-                  <li>imensi: Logo & Favicon harus persegi (misal: 64x64px). Gambar Hero sebaiknya lanskap (misal: 1200x630px).</li>
+                  <li>Dimensi: Logo & Favicon harus persegi (misal: 64x64px). Gambar Hero sebaiknya lanskap (misal: 1200x630px).</li>
                   <li>Ukuran File: Jaga agar ukuran file sekecil mungkin (Favicon &lt;10KB, Gambar Hero &lt;150KB) untuk menjaga kecepatan website. Gunakan [TinyPNG](https://tinypng.com/) sebelum mengunggah.</li>
                   <li>Akibatnya jika dilanggar: Gambar yang terlalu besar akan membuat website menjadi sangat lambat, terutama di koneksi internet yang lambat.</li>
                 </ul>
@@ -95,8 +94,16 @@ export function ContentForm({ contents }: { contents: ContentItem[] }) {
                           className="w-32 h-32 object-cover rounded-md mb-4"
                         />
                       )}
+                      {/* ✅ PERUBAHAN DI SINI */}
                       <CldUploadWidget
                         signatureEndpoint="/api/sign-cloudinary-params"
+                        uploadPreset="next-cloudinary-signed"
+                        options={{
+                          cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+                          apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+                          sources: ['local', 'url'],
+                          multiple: false,
+                        }}
                         onSuccess={(result: CloudinaryUploadWidgetResults) => {
                           if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
                             handleValueChange(item.content_key, result.info.secure_url);

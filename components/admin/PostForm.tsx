@@ -13,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import Link from 'next/link'; // <-- Impor Link
-import { Button } from '@/components/ui/button'; // <-- Impor Button
+import Link from 'next/link'; 
+import { Button } from '@/components/ui/button'; 
 
 interface Post {
   id?: string;
@@ -79,8 +79,16 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
               <CardTitle>Gambar Utama</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* ✅ PERUBAHAN DI SINI */}
               <CldUploadWidget
                 signatureEndpoint="/api/sign-cloudinary-params"
+                uploadPreset="next-cloudinary-signed"
+                options={{
+                  cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+                  apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+                  sources: ['local', 'url'],
+                  multiple: false,
+                }}
                 onSuccess={(result: CloudinaryUploadWidgetResults) => {
                   if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
                     setImageUrl(result.info.secure_url);
@@ -122,7 +130,6 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
             </CardContent>
           </Card>
           
-          {/* ✅ PERUBAHAN DI SINI: Tombol Kembali dan Simpan disatukan */}
           <div className="flex items-center justify-between">
             <Link href="/admin/blogs">
               <Button variant="secondary">Kembali</Button>
