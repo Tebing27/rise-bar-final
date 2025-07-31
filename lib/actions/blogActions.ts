@@ -189,6 +189,7 @@ export async function upsertPost(prevState: BlogFormState, formData: FormData): 
     return { success: false, message: (e as Error).message };
   }
 
+  revalidatePath('/');
   revalidatePath('/admin/blogs');
   revalidatePath('/blog');
   revalidatePath(`/blog/${postData.slug}`);
