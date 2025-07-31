@@ -13,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import Link from 'next/link'; 
-import { Button } from '@/components/ui/button'; 
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface Post {
   id?: string;
@@ -79,16 +79,11 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
               <CardTitle>Gambar Utama</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* ✅ PERUBAHAN DI SINI */}
+              {/* === PERUBAHAN UTAMA DI SINI === */}
               <CldUploadWidget
                 signatureEndpoint="/api/sign-cloudinary-params"
-                uploadPreset="next-cloudinary-signed"
-                options={{
-                  cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-                  apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-                  sources: ['local', 'url'],
-                  multiple: false,
-                }}
+                // Ganti 'rise-bar-uploads' dengan nama preset yang Anda buat di Cloudinary
+                uploadPreset="rise-bar-uploads"
                 onSuccess={(result: CloudinaryUploadWidgetResults) => {
                   if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
                     setImageUrl(result.info.secure_url);

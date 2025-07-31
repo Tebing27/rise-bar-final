@@ -94,16 +94,11 @@ export function ContentForm({ contents }: { contents: ContentItem[] }) {
                           className="w-32 h-32 object-cover rounded-md mb-4"
                         />
                       )}
-                      {/* ✅ PERUBAHAN DI SINI */}
+                      {/* === PERUBAHAN UTAMA DI SINI === */}
                       <CldUploadWidget
                         signatureEndpoint="/api/sign-cloudinary-params"
-                        uploadPreset="next-cloudinary-signed"
-                        options={{
-                          cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-                          apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-                          sources: ['local', 'url'],
-                          multiple: false,
-                        }}
+                        // Ganti 'rise-bar-uploads' dengan nama preset yang Anda buat di Cloudinary
+                        uploadPreset="rise-bar-uploads"
                         onSuccess={(result: CloudinaryUploadWidgetResults) => {
                           if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
                             handleValueChange(item.content_key, result.info.secure_url);
