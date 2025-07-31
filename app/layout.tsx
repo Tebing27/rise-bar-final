@@ -28,6 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+      <meta name="google-site-verification" content="9AEwNOv_oJ_CoM5uxOe-T5pVuNHVyIXtp-cjMCRHLzo" />
+      </head>
       <body className={`${inter.variable} font-sans flex flex-col min-h-screen`}>
         <AuthProvider>
           <Navbar />
