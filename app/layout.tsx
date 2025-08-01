@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-int
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContentAsMap();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rise-bar-pkm.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://risebar.id';
 
   return {
     // ✅ Menetapkan URL dasar untuk semua metadata
@@ -68,9 +68,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <head>
-      <meta name="google-site-verification" content="9AEwNOv_oJ_CoM5uxOe-T5pVuNHVyIXtp-cjMCRHLzo" />
-      </head>
       <body className={`${inter.variable} font-sans flex flex-col min-h-screen`}>
         <AuthProvider>
           <Navbar />
