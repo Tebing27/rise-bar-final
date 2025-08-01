@@ -33,7 +33,7 @@ const PostSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(5, { message: 'Judul minimal 5 karakter.' }),
   author_name: z.string().min(3, { message: 'Nama penulis minimal 3 karakter.' }),
-  slug: z.string().min(5, { message: 'Slug minimal 5 karakter.' }),
+  slug: z.string().min(5, { message: 'Slug minimal 5 karakter.' }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung (-).' }),
   content: z.string().optional(),
   image_url: z.string().optional(),
   is_published: z.boolean(),
@@ -91,11 +91,8 @@ export async function getPosts(params: {
   const from = (page - 1) * postsPerPage;
   const to = from + postsPerPage - 1;
 
-  // ✅ PERBAIKAN UTAMA DI SINI
-  // Logika query diubah untuk menangani filter tag dengan benar
   let query;
   if (tag) {
-    // Jika ada filter tag, gunakan query khusus untuk relasi
     query = db
       .from('posts')
       .select(
@@ -107,9 +104,8 @@ export async function getPosts(params: {
         { count: 'exact' }
       )
       .eq('is_published', true)
-      .eq('tags.name', tag); // Filter berdasarkan nama tag di relasi
+      .eq('tags.name', tag);
   } else {
-    // Query standar jika tidak ada filter tag
     query = db
       .from('posts')
       .select(
@@ -147,7 +143,8 @@ export async function getPosts(params: {
   return { posts: data, totalPages };
 }
 
-// ... (Sisa fungsi upsertPost, getCloudinarySignature, deletePost tidak berubah)
+
+// --- ✅ FUNGSI UTAMA YANG DIPERBARUI ---
 export async function upsertPost(prevState: BlogFormState, formData: FormData): Promise<BlogFormState> {
   const rawData = {
     id: formData.get('id') || undefined,
@@ -167,6 +164,34 @@ export async function upsertPost(prevState: BlogFormState, formData: FormData): 
   }
 
   const { id, tags, ...postData } = validatedFields.data;
+
+  // --- START: LOGIKA VALIDASI DUPLIKAT ---
+  try {
+    // 1. Cek duplikasi Judul
+    let titleQuery = supabaseAdmin.from('posts').select('id').eq('title', postData.title).limit(1);
+    if (id) {
+      titleQuery = titleQuery.not('id', 'eq', id); // Abaikan post saat ini jika sedang diedit
+    }
+    const { data: duplicateTitle } = await titleQuery;
+    if (duplicateTitle && duplicateTitle.length > 0) {
+      return { success: false, errors: { title: ['Judul ini sudah digunakan. Harap ganti dengan yang lain.'] } };
+    }
+
+    // 2. Cek duplikasi Slug
+    let slugQuery = supabaseAdmin.from('posts').select('id').eq('slug', postData.slug).limit(1);
+    if (id) {
+      slugQuery = slugQuery.not('id', 'eq', id); // Abaikan post saat ini jika sedang diedit
+    }
+    const { data: duplicateSlug } = await slugQuery;
+    if (duplicateSlug && duplicateSlug.length > 0) {
+      return { success: false, errors: { slug: ['URL ini sudah digunakan. Harap ganti dengan yang lain.'] } };
+    }
+  // ✅ FIX: Removed unused 'e' variable from catch block.
+  } catch {
+    return { success: false, message: "Gagal melakukan validasi ke database." };
+  }
+  // --- END: LOGIKA VALIDASI DUPLIKAT ---
+
 
   const dataToUpsert = {
       ...postData,
@@ -195,6 +220,7 @@ export async function upsertPost(prevState: BlogFormState, formData: FormData): 
   revalidatePath(`/blog/${postData.slug}`);
   redirect('/admin/blogs');
 }
+
 
 export async function getCloudinarySignature() {
   const timestamp = Math.round(new Date().getTime() / 1000);

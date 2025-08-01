@@ -11,10 +11,17 @@ import { CldUploadWidget, type CloudinaryUploadWidgetResults } from 'next-cloudi
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import dynamic from 'next/dynamic';
+
+// Pastikan Anda mengimpor file editor yang benar.
+// Jika Anda mengganti nama file menjadi RichTextEditor.tsx, ubah juga di sini.
+const LexicalEditor = dynamic(() => import('./LexicalEditor'), { 
+  ssr: false,
+  loading: () => <div className="border rounded-md p-4 min-h-[150px] bg-muted animate-pulse"></div> 
+});
 
 interface Post {
   id?: string;
@@ -32,14 +39,15 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
   const initialState: BlogFormState = { success: false };
   const [state, formAction] = useActionState(upsertPost, initialState);
   const [imageUrl, setImageUrl] = useState(post?.image_url || '');
-
+  
   const authorName = session?.user?.name ?? 'Admin';
 
   return (
     <form action={formAction}>
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
         {/* Kolom Kiri */}
-        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
               <CardTitle>Detail Artikel</CardTitle>
@@ -56,7 +64,7 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
                 {state.errors?.title && <p className="text-destructive text-xs">{state.errors.title[0]}</p>}
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="slug">Slug (URL)</Label>
+                <Label htmlFor="slug">URL</Label>
                 <Input id="slug" name="slug" type="text" defaultValue={post?.slug} required />
                 {state.errors?.slug && <p className="text-destructive text-xs">{state.errors.slug[0]}</p>}
               </div>
@@ -66,27 +74,33 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="content">Konten</Label>
-                <Textarea id="content" name="content" defaultValue={post?.content} className="min-h-32" />
+                {/* ✅ PERBAIKAN DI SINI:
+                    - Menghapus prop 'onChange' dan state 'content' yang tidak perlu.
+                    - Editor akan menangani nilainya sendiri dan mengirimkannya lewat form.
+                */}
+                <LexicalEditor
+                  name="content"
+                  initialValue={post?.content || ''}
+                />
+                {state.errors?.content && <p className="text-destructive text-xs">{state.errors.content[0]}</p>}
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Kolom Kanan */}
-        <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+        
+        {/* Kolom Kanan (tidak ada perubahan) */}
+        <div className="space-y-8">
           <Card>
             <CardHeader>
               <CardTitle>Gambar Utama</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* === PERUBAHAN UTAMA DI SINI === */}
               <CldUploadWidget
                 signatureEndpoint="/api/sign-cloudinary-params"
-                // Ganti 'rise-bar-uploads' dengan nama preset yang Anda buat di Cloudinary
                 uploadPreset="rise-bar-uploads"
                 onSuccess={(result: CloudinaryUploadWidgetResults) => {
                   if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
-                    setImageUrl(result.info.secure_url);
+                    setImageUrl(result.info.secure_url as string);
                   }
                 }}
               >
@@ -95,7 +109,7 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
                     {imageUrl ? (
                         <Image src={imageUrl} alt="Preview" width={300} height={150} className="w-full h-auto rounded-md object-cover border" />
                     ) : (
-                        <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed p-8 text-center">
+                        <div className="flex flex-col items-center justify-center rounded-md border-2 border-dashed p-8 text-center h-32">
                             <p className="text-sm text-muted-foreground">Klik untuk upload</p>
                         </div>
                     )}
@@ -125,13 +139,13 @@ export function PostForm({ post, tags }: { post?: Post | null; tags?: string; })
             </CardContent>
           </Card>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end gap-2">
             <Link href="/admin/blogs">
-              <Button variant="secondary">Kembali</Button>
+              <Button variant="outline">Kembali</Button>
             </Link>
             <PostFormButton isNew={!post} />
           </div>
-           {state.message && <p className="text-destructive text-sm">{state.message}</p>}
+           {state.message && !state.success && <p className="text-destructive text-sm mt-2">{state.message}</p>}
         </div>
       </div>
     </form>

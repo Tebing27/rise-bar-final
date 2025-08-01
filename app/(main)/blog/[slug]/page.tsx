@@ -1,150 +1,76 @@
 // app/(main)/blog/[slug]/page.tsx
-import { db } from '@/lib/supabase';
+'use client';
+
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { auth } from '@/lib/auth';
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
+import { notFound, usePathname } from 'next/navigation';
 import { calculateReadingTime } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Clock, UserCircle } from 'lucide-react';
+import { ShareButtons } from '@/components/blog/ShareButtons';
+import { db } from '@/lib/supabase';
 
-// ✅ PERBAIKAN UNTUK NEXT.JS 15: `params` sekarang adalah Promise yang harus di-await
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params; // Await the params Promise
-  
-  const { data: post } = await db
-    .from('posts')
-    .select('title, content, image_url, author_name, published_at, tags(name)')
-    .eq('slug', slug)
-    .single();
-
-  // ... (rest of the function is correct)
-  if (!post) {
-    return {
-      title: 'Artikel Tidak Ditemukan | Rise Bar',
-      description: 'Sayangnya, artikel yang Anda cari tidak ada.',
-      robots: 'noindex, nofollow',
-    };
-  }
-  const cleanContent = post.content?.replace(/<[^>]*>/g, '');
-  const description = cleanContent 
-    ? cleanContent.substring(0, 155).trim() + '...'
-    : `Baca artikel "${post.title}" di Rise Bar Blog. Tips dan informasi kesehatan terpercaya.`;
-  const keywords = post.tags?.map((tag: { name: string }) => tag.name).join(', ') || '';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const canonicalUrl = `${siteUrl}/blog/${slug}`;
-  return {
-    title: `${post.title} | Rise Bar Blog`,
-    description: description,
-    openGraph: {
-      title: post.title,
-      description: description,
-      url: canonicalUrl,
-      siteName: 'Rise Bar',
-      type: 'article',
-      publishedTime: post.published_at,
-      authors: [post.author_name || 'Rise Bar Team'],
-      images: post.image_url ? [
-        {
-          url: post.image_url,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        }
-      ] : [],
-      locale: 'id_ID',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: description,
-      images: post.image_url ? [post.image_url] : [],
-      creator: '@risebar.pkmk',
-    },
-    keywords: keywords,
-    authors: [{ name: post.author_name || 'Rise Bar Team' }],
-    creator: post.author_name || 'Rise Bar Team',
-    publisher: 'Rise Bar',
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-    other: {
-      'article:published_time': post.published_at,
-      'article:author': post.author_name || 'Rise Bar Team',
-      'article:section': 'Health & Wellness',
-      'article:tag': keywords,
-    },
-  };
+// Tipe data untuk post
+interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  content: string | null;
+  image_url: string | null;
+  author_name: string | null;
+  published_at: string;
+  view_count: number;
+  tags: { name: string }[];
 }
 
-// ✅ PERBAIKAN UNTUK NEXT.JS 15: Page component juga harus await params
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params; // Await the params Promise
-  const session = await auth();
+export default function BlogPostPage() {
+  const pathname = usePathname();
+  const slug = pathname.split('/').pop();
 
-  const { data: post } = await db
-    .from('posts')
-    .select(`*, tags(name)`)
-    .eq('slug', slug)
-    .single();
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!post) {
-    notFound();
+  useEffect(() => {
+    async function fetchPost() {
+      if (!slug) {
+        setLoading(false);
+        return notFound();
+      }
+      
+      const { data, error } = await db
+        .from('posts')
+        .select(`*, tags(name)`)
+        .eq('slug', slug)
+        .single();
+      
+      if (error || !data) {
+        setLoading(false);
+        return notFound();
+      }
+      
+      setPost(data as Post);
+      setLoading(false);
+    }
+    fetchPost();
+  }, [slug]);
+
+  if (loading) {
+    return <div className="text-center py-20">Memuat artikel...</div>;
   }
-
-  if (session?.user?.role !== 'admin') {
-    await db.rpc('increment_view_count', { post_id: post.id });
+  
+  if (!post) {
+    return notFound();
   }
 
   const readingTime = calculateReadingTime(post.content || '');
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": post.title,
-    "description": post.content?.replace(/<[^>]*>/g, '').substring(0, 155),
-    "image": post.image_url || `${process.env.NEXT_PUBLIC_SITE_URL}/mascot_bertanya.webp`,
-    "author": {
-      "@type": "Person",
-      "name": post.author_name || "Rise Bar Team"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Rise Bar",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.webp`
-      }
-    },
-    "datePublished": post.published_at,
-    "dateModified": post.updated_at || post.published_at,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`
-    }
-  };
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
-      
-      <div className="bg-background py-12 sm:py-16">
-        <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div className="bg-background py-12 sm:py-16">
+      {/* Container utama dibuat lebih fokus ke konten artikel */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+        {/* Lebar artikel diatur agar nyaman dibaca */}
+        <article className="mx-auto max-w-4xl">
           {post.image_url && (
             <div className="relative mb-8 w-full aspect-video rounded-xl overflow-hidden">
               <Image
@@ -161,6 +87,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             {post.title}
           </h1>
 
+          {/* Metadata Artikel */}
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <UserCircle className="h-4 w-4" />
@@ -181,24 +108,32 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </div>
           </div>
 
+          {/* ✅ PERUBAHAN: Posisi Tags dipindah ke sini */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {post.tags.map((tag: { name: string }) => (
+                <Badge key={tag.name} variant="secondary">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Konten Artikel */}
+          {/* ✅ PERUBAHAN: Komponen PostContent dihapus untuk simplifikasi karena Daftar Isi sudah tidak ada */}
           <div
             className="prose prose-lg max-w-none mt-8"
             dangerouslySetInnerHTML={{ __html: post.content || '' }}
           />
 
-          {post.tags && post.tags.length > 0 && (
-            <div className="mt-10 pt-6 border-t">
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag: { name: string }) => (
-                  <Badge key={tag.name} variant="secondary">
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* ✅ PERUBAHAN: Tombol Bagikan dipindah ke sini agar responsif */}
+          <div className="mt-10 pt-6 border-t">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Bagikan Artikel Ini</h3>
+            <ShareButtons title={post.title} />
+          </div>
+
         </article>
       </div>
-    </>
+    </div>
   );
 }
