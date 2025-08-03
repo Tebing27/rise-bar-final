@@ -18,7 +18,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const logoUrl = '/logo.webp';
-  const logoText = 'Rise Bar';
+  const logoText = 'Rise and Care';
   
   // Logika utama: Jika sedang di halaman admin, jangan render Navbar sama sekali.
   if (pathname.startsWith('/admin')) {
