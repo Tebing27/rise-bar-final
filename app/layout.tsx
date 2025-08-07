@@ -14,7 +14,7 @@ const inter = Inter({
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getSiteContentAsMap();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://risebar.id";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000/";
 
   return {
     // ✅ Menetapkan URL dasar untuk semua metadata
