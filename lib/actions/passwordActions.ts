@@ -1,7 +1,7 @@
 // lib/actions/passwordActions.ts
 "use server";
 
-import { supabaseAdmin } from "@/lib/supabase-admin"; // <-- Perbaikan: Menggunakan koneksi admin
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { Resend } from "resend";
 import { ResetPasswordEmail } from "@/components/emails/ResetPasswordEmail";
 import crypto from "crypto";
@@ -16,7 +16,7 @@ export type PasswordFormState = {
 const resend = new Resend(process.env.RESEND_API_KEY);
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-// --- FUNGSI PENGIRIMAN LINK RESET ---
+// --- FUNGSI PENGIRIMAN LINK RESET (Tidak ada perubahan di sini) ---
 export async function sendPasswordResetLink(
   prevState: PasswordFormState,
   formData: FormData
@@ -24,17 +24,14 @@ export async function sendPasswordResetLink(
   const email = formData.get("email") as string;
   if (!email) return { error: "Email diperlukan." };
 
-  // Menggunakan koneksi admin untuk mencari user
   const supabase = supabaseAdmin;
 
-  // 1. Cari user berdasarkan email
   const { data: user } = await supabase
     .from("users")
     .select("id, email")
     .eq("email", email)
     .single();
 
-  // Jika tidak ada user, tetap kirim pesan sukses untuk keamanan
   if (!user) {
     return {
       success:
@@ -42,7 +39,6 @@ export async function sendPasswordResetLink(
     };
   }
 
-  // 2. Hapus token lama & buat yang baru
   await supabase.from("password_reset_tokens").delete().eq("user_id", user.id);
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -62,17 +58,15 @@ export async function sendPasswordResetLink(
     return { error: "Gagal membuat token reset. Coba lagi nanti." };
   }
 
-  // 3. Kirim email
   const resetLink = `${baseUrl}/auth/update-password?token=${token}`;
 
   try {
     const emailComponent = await ResetPasswordEmail({ resetLink });
 
     await resend.emails.send({
-      // Perbaikan: Ganti alamat email pengirim dengan domain Anda
       from: "noreply@risebar.id",
       to: user.email,
-      subject: "Reset Password Akun Rice and Care",
+      subject: "Reset Password Akun Rise Bar",
       react: emailComponent,
     });
     return {
@@ -85,7 +79,7 @@ export async function sendPasswordResetLink(
   }
 }
 
-// --- FUNGSI RESET PASSWORD ---
+// --- FUNGSI RESET PASSWORD (Dengan Perbaikan) ---
 export async function resetPassword(
   prevState: PasswordFormState,
   formData: FormData
@@ -97,7 +91,6 @@ export async function resetPassword(
     return { error: "Password minimal 6 karakter." };
   if (!token) return { error: "Token tidak valid atau hilang." };
 
-  // Perbaikan: Gunakan koneksi admin untuk validasi token dan update user
   const supabase = supabaseAdmin;
 
   // 1. Ambil semua token yang belum kedaluwarsa
@@ -124,7 +117,7 @@ export async function resetPassword(
     return { error: "Token tidak valid atau sudah kedaluwarsa." };
   }
 
-  // 3. Update password di Supabase Auth (membutuhkan hak admin)
+  // 3. Update password di Supabase Auth (Pintu Utama)
   const { error: updateUserError } = await supabase.auth.admin.updateUserById(
     validTokenData.user_id,
     { password: password }
@@ -132,10 +125,23 @@ export async function resetPassword(
 
   if (updateUserError) {
     console.error("Error updating Supabase Auth user:", updateUserError);
-    return { error: "Gagal memperbarui password." };
+    return { error: "Gagal memperbarui password di sistem otentikasi." };
   }
 
-  // 4. Hapus token setelah digunakan
+  // 4. ✅ PERBAIKAN: Update juga password_hash di tabel public.users (Pintu Kamar)
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const { error: updateProfileError } = await supabase
+    .from("users")
+    .update({ password_hash: hashedPassword })
+    .eq("id", validTokenData.user_id);
+
+  if (updateProfileError) {
+    console.error("Error updating public user profile:", updateProfileError);
+    return { error: "Gagal sinkronisasi password. Silakan coba lagi." };
+  }
+  // --- AKHIR PERBAIKAN ---
+
+  // 5. Hapus token setelah digunakan
   await supabase
     .from("password_reset_tokens")
     .delete()
