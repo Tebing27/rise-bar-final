@@ -1,11 +1,19 @@
 // components/admin/AdminSidebar.tsx
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Home, Users, Utensils, FileText, Settings, LayoutDashboard, Palette } from 'lucide-react';
-import { LogoutButton } from '../auth/LogoutButton';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  Home,
+  Users,
+  Utensils,
+  FileText,
+  Settings,
+  LayoutDashboard,
+  Palette,
+} from "lucide-react";
+import { LogoutButton } from "../auth/LogoutButton";
 
 const adminNavItems = [
   { title: "Beranda", href: "/", icon: LayoutDashboard },
@@ -26,7 +34,7 @@ export function AdminSidebar() {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="">Rise Bar</span>
+            <span className="">Rice and Care</span>
           </Link>
         </div>
         <div className="flex-1">
@@ -44,12 +52,11 @@ export function AdminSidebar() {
                 {item.title}
               </Link>
             ))}
-              <div className="mt-auto px-2.5">
-                <div className="border-t -mx-6 my-6"></div>
-                <LogoutButton />
+            <div className="mt-auto px-2.5">
+              <div className="border-t -mx-6 my-6"></div>
+              <LogoutButton />
             </div>
           </nav>
-          
         </div>
       </div>
     </aside>

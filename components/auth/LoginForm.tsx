@@ -1,43 +1,53 @@
 // components/auth/LoginForm.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // <-- Import Link
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
-export function LoginForm() {
+// 1. Terima prop setIsLoading dari LoginPage
+export function LoginForm({
+  setIsLoading,
+}: {
+  setIsLoading: (isLoading: boolean) => void;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  // 2. Ganti nama state ini menjadi 'isSubmitting' agar lebih jelas fungsinya
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    setError("");
+    setIsLoading(true); // 3. Aktifkan loading spinner satu layar penuh
+    setIsSubmitting(true); // 4. Aktifkan loading di dalam tombol
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
 
       if (result?.error) {
-        setError('Email atau password salah. Silakan coba lagi.');
+        setError("Email atau password salah. Silakan coba lagi.");
+        setIsLoading(false); // 5. Matikan loading spinner jika terjadi error
       } else {
-        router.push('/tracker');
+        // Redirect akan menangani sisanya, spinner akan hilang saat halaman berganti
+        router.push("/tracker");
       }
     } catch {
-      setError('Terjadi kesalahan. Coba beberapa saat lagi.');
+      setError("Terjadi kesalahan. Coba beberapa saat lagi.");
+      setIsLoading(false); // 5. Matikan juga spinner jika ada exception
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false); // 6. Selalu aktifkan kembali tombol setelah selesai
     }
   };
 
@@ -59,14 +69,13 @@ export function LoginForm() {
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            {/* --- Link Lupa Password Ditambahkan di Sini --- */}
-            <Link 
-              href="/forgot-password" 
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Lupa Password?
-            </Link>
+          <Label htmlFor="password">Password</Label>
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Lupa Password?
+          </Link>
         </div>
         <Input
           id="password"
@@ -79,8 +88,9 @@ export function LoginForm() {
         />
       </div>
       <div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {/* 7. Kondisi disabled tombol sekarang menggunakan isSubmitting */}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Masuk
         </Button>
       </div>

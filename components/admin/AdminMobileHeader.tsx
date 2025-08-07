@@ -1,13 +1,29 @@
 // components/admin/AdminMobileHeader.tsx
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Home, Users, Utensils, FileText, Settings, Menu, Package2, LayoutDashboard, Palette} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { LogoutButton } from '../auth/LogoutButton';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  Home,
+  Users,
+  Utensils,
+  FileText,
+  Settings,
+  Menu,
+  Package2,
+  LayoutDashboard,
+  Palette,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { LogoutButton } from "../auth/LogoutButton";
 
 const adminNavItems = [
   { title: "Beranda", href: "/", icon: LayoutDashboard },
@@ -26,7 +42,7 @@ export function AdminMobileHeader() {
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden">
       <Link href="/" className="flex items-center gap-2 font-semibold">
         <Package2 className="h-6 w-6 text-primary" />
-        <span className="">Rise Bar</span>
+        <span className="">Rice and Care</span>
       </Link>
       <div className="ml-auto">
         <Sheet>
@@ -42,7 +58,7 @@ export function AdminMobileHeader() {
             <SheetDescription className="sr-only">
               Navigasi utama untuk panel admin.
             </SheetDescription>
-            
+
             <nav className="grid gap-6 text-lg font-medium">
               <Link
                 href="#"
@@ -65,12 +81,11 @@ export function AdminMobileHeader() {
                   {item.title}
                 </Link>
               ))}
-            <div className="mt-auto px-2.5">
+              <div className="mt-auto px-2.5">
                 <div className="border-t -mx-6 my-6"></div>
                 <LogoutButton />
-            </div>
+              </div>
             </nav>
-
           </SheetContent>
         </Sheet>
       </div>

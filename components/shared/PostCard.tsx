@@ -1,7 +1,7 @@
 // components/shared/PostCard.tsx
-import Link from 'next/link';
-import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
+import Link from "next/link";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 
 interface Post {
   id: string;
@@ -20,7 +20,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   // Tentukan URL gambar, gunakan maskot sebagai fallback jika tidak ada image_url
-  const imageUrl = post.image_url || '/mascot_berjelajah_arbie.webp'; // <-- Gambar dari folder /public
+  const imageUrl = post.image_url || "/mascot_berjelajah_arbie.webp"; // <-- Gambar dari folder /public
 
   return (
     <Link href={`/blog/${post.slug}`} className="block group">
@@ -36,8 +36,10 @@ export function PostCard({ post }: PostCardProps) {
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex items-center gap-x-4 text-xs text-muted-foreground mb-2">
             <time dateTime={post.published_at}>
-              {new Date(post.published_at).toLocaleDateString('id-ID', {
-                year: 'numeric', month: 'long', day: 'numeric'
+              {new Date(post.published_at).toLocaleDateString("id-ID", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </time>
           </div>
@@ -45,11 +47,11 @@ export function PostCard({ post }: PostCardProps) {
             {post.title}
           </h3>
           <p className="mt-3 text-sm text-muted-foreground flex-grow">
-             {post.content
-              ? `${post.content.replace(/<[^>]+>/g, '').substring(0, 120)}...`
-              : 'Baca lebih lanjut untuk mengetahui detailnya.'}
+            {post.content
+              ? `${post.content.replace(/<[^>]+>/g, "").substring(0, 120)}...`
+              : "Baca lebih lanjut untuk mengetahui detailnya."}
           </p>
-           {post.tags && post.tags.length > 0 && (
+          {post.tags && post.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
                 <Badge key={tag.name} variant="secondary">
@@ -61,7 +63,7 @@ export function PostCard({ post }: PostCardProps) {
           <div className="relative mt-6 flex items-center gap-x-4">
             <div className="text-sm leading-6">
               <p className="font-semibold text-foreground">
-                Oleh {post.author_name || 'Tim Rise Bar'}
+                Oleh {post.author_name || "Tim Rice and Care"}
               </p>
             </div>
           </div>

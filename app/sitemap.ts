@@ -1,6 +1,6 @@
-import { MetadataRoute } from 'next';
-import { db } from '@/lib/supabase';
-import { getSiteContentAsMap } from '@/lib/content'; 
+import { MetadataRoute } from "next";
+import { db } from "@/lib/supabase";
+import { getSiteContentAsMap } from "@/lib/content";
 
 interface Post {
   slug: string;
@@ -9,20 +9,20 @@ interface Post {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://risebar.id";
 
   const siteContent = await getSiteContentAsMap();
   const heroImageUrl = siteContent.home_hero_image;
 
   const staticRoutes = [
-    '/blog',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/tracker',
-    '/tracker/new',
-    '/profile',
-    '/onboarding',
+    "/blog",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/tracker",
+    "/tracker/new",
+    "/profile",
+    "/onboarding",
   ];
 
   const staticUrls = staticRoutes.map((route) => ({
@@ -40,23 +40,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const { data: posts, error } = await db
-    .from('posts')
-    .select('slug, created_at, image_url')
-    .eq('is_published', true);
-  
-  const postUrls = posts ? posts.map((post: Post) => {
-    const sitemapEntry: MetadataRoute.Sitemap[0] = {
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: new Date(post.created_at),
-    };
-    if (post.image_url) {
-      sitemapEntry.images = [post.image_url];
-    }
-    return sitemapEntry;
-  }) : [];
-  
+    .from("posts")
+    .select("slug, created_at, image_url")
+    .eq("is_published", true);
+
+  const postUrls = posts
+    ? posts.map((post: Post) => {
+        const sitemapEntry: MetadataRoute.Sitemap[0] = {
+          url: `${baseUrl}/blog/${post.slug}`,
+          lastModified: new Date(post.created_at),
+        };
+        if (post.image_url) {
+          sitemapEntry.images = [post.image_url];
+        }
+        return sitemapEntry;
+      })
+    : [];
+
   if (error) {
-    console.error('Error fetching posts for sitemap:', error);
+    console.error("Error fetching posts for sitemap:", error);
   }
 
   return [homeUrl, ...staticUrls, ...postUrls];
