@@ -20,24 +20,24 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteUrl),
 
     // ✅ Menetapkan nama aplikasi secara eksplisit
-    applicationName: "Rice and Care",
+    applicationName: "Rise Bar",
 
     title: {
-      default: content.site_title || "Rice and Care | Lacak Gula Darah Anda",
-      template: `%s | Rice and Care`,
+      default: content.site_title || "Rise Bar – Snack Sehat dari Bahan Lokal",
+      template: `%s | Rise Bar`,
     },
     description:
       content.site_description ||
-      "Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda.",
+      "Snack bar sehat praktis berbahan lokal: tepung kulit pisang raja, ubi ungu, dan apel Malang. Energi alami untuk gaya hidup aktif dan berkelanjutan.",
 
     // ✅ Menyediakan metadata Open Graph yang lebih kaya untuk media sosial & mesin pencari
     openGraph: {
-      title: content.site_title || "Rice and Care | Lacak Gula Darah Anda",
+      title: content.site_title || "Rise Bar – Snack Sehat dari Bahan Lokal",
       description:
         content.site_description ||
-        "Platform cerdas untuk memantau, menganalisis, dan mengelola kadar glukosa Anda.",
+        "Snack bar sehat praktis berbahan lokal: tepung kulit pisang raja, ubi ungu, dan apel Malang. Energi alami untuk gaya hidup aktif dan berkelanjutan.",
       url: siteUrl,
-      siteName: "Rice and Care", // ✅ Memberitahu Google nama situs Anda
+      siteName: "Rise Bar – Snack Sehat dari Bahan Lokal", // ✅ Memberitahu Google nama situs Anda
       images: [
         {
           url: "/opengraph-image.png", // Gambar untuk preview saat link dibagikan

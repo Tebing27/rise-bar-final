@@ -49,6 +49,7 @@ const ArrowIcon = ({
 
 export default function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [cardWidth, setCardWidth] = useState(0);
 
@@ -108,7 +109,7 @@ export default function TestimonialsSection() {
     <section id="testimoni" className="bg-gray-100 py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h2 className="font-display text-4xl md:text-5xl text-gray-900 tracking-wider mb-4 sm:mb-0 text-center sm:text-left">
+          <h2 className="font-display text-4xl md:text-5xl text-gray-900 mb-4 sm:mb-0 text-center sm:text-left">
             Testimoni <br className="sm:hidden" />
             Rise Bar
           </h2>
@@ -137,14 +138,25 @@ export default function TestimonialsSection() {
             {testimonials.map((testimonial) => (
               <div
                 key={testimonial.id}
-                // --- PERBAIKAN DI SINI ---
-                className="flex-shrink-0 w-[90%] sm:w-[45%] md:w-[30%] snap-start bg-white border-2 border-black rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:-translate-x-2 hover:-translate-y-2 hover:shadow-[8px_8px_0_0_#000]"
-                // --- AKHIR PERBAIKAN ---
+                onTouchStart={() => setActiveCard(testimonial.id)}
+                onTouchEnd={() => setActiveCard(null)}
+                className={`
+                  flex-shrink-0 w-[90%] sm:w-[45%] md:w-[30%] snap-start 
+                  bg-white border-2 border-black rounded-2xl p-6 
+                  flex flex-col justify-between cursor-pointer 
+                  transition-all duration-300
+                  md:hover:-translate-x-2 md:hover:-translate-y-2 md:hover:shadow-[8px_8px_0_0_#000]
+                  ${
+                    activeCard === testimonial.id
+                      ? "-translate-x-1 -translate-y-1 shadow-[6px_6px_0_0_#000]"
+                      : "shadow-[4px_4px_0_0_#000]"
+                  }
+                `}
                 style={{ minHeight: "320px" }}
               >
                 <div>
                   <div className="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center text-white text-4xl font-black mb-4">
-                    “
+                    "
                   </div>
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -180,9 +192,6 @@ export default function TestimonialsSection() {
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
-        }
-        .font-display {
-          font-family: "Knewave", cursive;
         }
       `}</style>
     </section>

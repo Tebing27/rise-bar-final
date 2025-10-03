@@ -36,6 +36,8 @@ const BrandLogosClient = ({ logos, headline }: BrandLogosClientProps) => {
                 <Image
                   src={logo.image_url}
                   alt={logo.name}
+                  width={200}
+                  height={64}
                   className="h-16 w-auto max-w-none object-contain"
                 />
               </div>
