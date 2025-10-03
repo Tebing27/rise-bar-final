@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
-import { Navbar } from "@/components/shared/Navbar";
 import { getSiteContentAsMap } from "@/lib/content";
 
 const inter = Inter({
@@ -80,7 +79,6 @@ export default function RootLayout({
         className={`${inter.variable} font-sans flex flex-col min-h-screen`}
       >
         <AuthProvider>
-          <Navbar />
           <main className="flex-grow">{children}</main>
         </AuthProvider>
       </body>

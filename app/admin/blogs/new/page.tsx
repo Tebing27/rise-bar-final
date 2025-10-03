@@ -1,5 +1,5 @@
 // app/admin/blogs/new/page.tsx
-import { PostForm } from '@/components/admin/PostForm';
+import { PostForm } from "@/components/admin/PostForm";
 
 export default async function NewPostPage() {
   return (

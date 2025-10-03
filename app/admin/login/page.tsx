@@ -1,24 +1,40 @@
+// app/admin/login/page.tsx
 "use client";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Toaster } from "@/components/ui/sonner";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
   return (
     <>
-      {isLoading && <LoadingSpinner />}
-      <div className="flex min-h-screen items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-white">
-              Admin Panel Login
-            </h2>
-          </div>
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <LoginForm setIsLoading={setIsLoading} />
-          </div>
-        </div>
+      <Toaster position="top-center" richColors />
+      <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/logo.webp"
+                alt="Rise Bar Logo"
+                width={80}
+                height={80}
+              />
+            </div>
+            <CardTitle className="text-2xl font-bold">Admin Panel</CardTitle>
+            <CardDescription>
+              Silakan masuk untuk mengelola konten website.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LoginForm />
+          </CardContent>
+        </Card>
       </div>
     </>
   );

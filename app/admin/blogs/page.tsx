@@ -1,29 +1,47 @@
 // app/admin/blogs/page.tsx
-import { db } from '@/lib/supabase';
-import Link from 'next/link';
-import Image from 'next/image';
-import { DeletePostButton } from '@/components/admin/DeletePostButton';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
-import { Search } from '@/components/admin/Search';
+import { db } from "@/lib/supabase";
+import Link from "next/link";
+import Image from "next/image";
+import { DeletePostButton } from "@/components/admin/DeletePostButton";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { Search } from "@/components/admin/Search";
 
 async function getAllPosts(searchQuery: string) {
   let query = db
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (searchQuery) {
-    query = query.ilike('title', `%${searchQuery}%`);
+    query = query.ilike("title", `%${searchQuery}%`);
   }
 
   const { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching all posts:', error);
+    console.error("Error fetching all posts:", error);
     return [];
   }
   return data;
@@ -35,7 +53,7 @@ export default async function AdminBlogsPage({
   searchParams?: Promise<{ query?: string }>;
 }) {
   const resolvedParams = await searchParams;
-  const searchQuery = resolvedParams?.query || '';
+  const searchQuery = resolvedParams?.query || "";
   const posts = await getAllPosts(searchQuery);
 
   return (
@@ -44,12 +62,16 @@ export default async function AdminBlogsPage({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <CardTitle>Kelola Blog</CardTitle>
-            <CardDescription>Buat, edit, dan kelola semua artikel blog Anda.</CardDescription>
+            <CardDescription>
+              Buat, edit, dan kelola semua artikel blog Anda.
+            </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Search placeholder="Cari judul artikel..." />
             <Link href="/admin/blogs/new">
-              <Button className="w-full sm:w-auto">+ Tambah Artikel Baru</Button>
+              <Button className="w-full sm:w-auto">
+                + Tambah Artikel Baru
+              </Button>
             </Link>
           </div>
         </div>
@@ -65,7 +87,9 @@ export default async function AdminBlogsPage({
                 <TableHead>Penulis</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tanggal</TableHead>
-                <TableHead><span className="sr-only">Aksi</span></TableHead>
+                <TableHead>
+                  <span className="sr-only">Aksi</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,24 +113,36 @@ export default async function AdminBlogsPage({
                   </TableCell>
                   <TableCell className="font-medium">{post.title}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {post.author_name || 'N/A'}
+                    {post.author_name || "N/A"}
                   </TableCell>
                   <TableCell>
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      post.is_published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {post.is_published ? 'Published' : 'Draft'}
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        post.is_published
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {post.is_published ? "Published" : "Draft"}
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
-                      day: 'numeric', month: 'short', year: 'numeric'
+                    {new Date(
+                      post.published_at || post.created_at
+                    ).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
                     })}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Toggle menu</span>
                         </Button>

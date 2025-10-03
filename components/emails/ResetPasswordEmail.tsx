@@ -1,5 +1,6 @@
 // components/emails/ResetPasswordEmail.tsx
 
+import Image from "next/image";
 import * as React from "react";
 
 interface ResetPasswordEmailProps {
@@ -40,7 +41,7 @@ export const ResetPasswordEmail: React.FC<
           textAlign: "center",
         }}
       >
-        <img
+        <Image
           src={logoImageUrl}
           alt="Rise Bar Logo"
           width="120"
@@ -51,7 +52,7 @@ export const ResetPasswordEmail: React.FC<
       <div style={{ padding: "40px" }}>
         {/* Gambar Maskot */}
         <div style={{ textAlign: "center", marginBottom: "30px" }}>
-          <img
+          <Image
             src={mascotImageUrl}
             alt="Rise Bar Mascot"
             width="100"
