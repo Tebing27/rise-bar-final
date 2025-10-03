@@ -156,7 +156,7 @@ export default function TestimonialsSection() {
               >
                 <div>
                   <div className="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center text-white text-4xl font-black mb-4">
-                    "
+                    &ldquo;
                   </div>
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
