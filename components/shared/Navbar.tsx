@@ -13,9 +13,9 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Beranda" },
-    { href: "#tentang-kami", label: "Tentang Kami" },
-    { href: "#visi-misi", label: "Visi Misi" },
-    { href: "#produk", label: "Produk & Filosofi Logo" },
+    { href: "#tentang-kami ", label: "Visi & Misi" },
+    { href: "#visi-misi", label: "Perjalanan Kami" },
+    { href: "#produk", label: "Tentang produk & Nutrition Facts" },
     { href: "#testimoni", label: "Testimoni" },
     { href: "/blog", label: "Berita" },
     { href: "#kontak-kami", label: "Kontak Kami" },

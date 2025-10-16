@@ -133,7 +133,7 @@ export default function TestimonialsSection() {
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex overflow-x-auto gap-6 snap-x snap-mandatory scroll-smooth no-scrollbar py-3 px-4 scroll-p-4"
+            className="flex items-start overflow-x-auto gap-6 snap-x snap-mandatory scroll-smooth no-scrollbar py-3 px-4 scroll-p-4"
           >
             {testimonials.map((testimonial) => (
               <div
@@ -152,7 +152,7 @@ export default function TestimonialsSection() {
                       : "shadow-[4px_4px_0_0_#000]"
                   }
                 `}
-                style={{ minHeight: "320px" }}
+                // style={{ minHeight: "320px" }}
               >
                 <div>
                   <div className="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center text-white text-4xl font-black mb-4">

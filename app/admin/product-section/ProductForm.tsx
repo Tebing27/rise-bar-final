@@ -86,17 +86,13 @@ export function ProductForm() {
     initialState
   );
 
-  const [tab1Before, setTab1Before] = useState("");
   const [tab1After, setTab1After] = useState("");
-  const [tab2Before, setTab2Before] = useState("");
   const [tab2After, setTab2After] = useState("");
 
   useEffect(() => {
     getSiteContentAsMap().then((data) => {
       setContent(data);
-      setTab1Before(data.product_section_tab1_before_image || "");
       setTab1After(data.product_section_tab1_after_image || "");
-      setTab2Before(data.product_section_tab2_before_image || "");
       setTab2After(data.product_section_tab2_after_image || "");
     });
   }, []);
@@ -122,7 +118,7 @@ export function ProductForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Editor Konten Slider</CardTitle>
+        <CardTitle>Editor Konten Produk</CardTitle>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-8">
@@ -130,7 +126,7 @@ export function ProductForm() {
           <input
             type="hidden"
             name="product_section_tab1_before_image"
-            value={tab1Before}
+            value={content.product_section_tab1_before_image || ""}
           />
           <input
             type="hidden"
@@ -140,7 +136,7 @@ export function ProductForm() {
           <input
             type="hidden"
             name="product_section_tab2_before_image"
-            value={tab2Before}
+            value={content.product_section_tab2_before_image || ""}
           />
           <input
             type="hidden"
@@ -215,15 +211,11 @@ export function ProductForm() {
                 />
               </div>
               <ImageUploader
-                label="Gambar 'Before' Tab 1"
-                imageUrl={tab1Before}
-                setImageUrl={setTab1Before}
-              />
-              <ImageUploader
-                label="Gambar 'After' Tab 1"
+                label="Gambar Produk Tab 1"
                 imageUrl={tab1After}
                 setImageUrl={setTab1After}
               />
+              {/* Uploader kedua dihapus: gunakan satu gambar per tab */}
             </div>
 
             <div className="space-y-4 p-4 border rounded-md">
@@ -261,15 +253,11 @@ export function ProductForm() {
                 />
               </div>
               <ImageUploader
-                label="Gambar 'Before' Tab 2"
-                imageUrl={tab2Before}
-                setImageUrl={setTab2Before}
-              />
-              <ImageUploader
-                label="Gambar 'After' Tab 2"
+                label="Gambar Produk Tab 2"
                 imageUrl={tab2After}
                 setImageUrl={setTab2After}
               />
+              {/* Uploader kedua dihapus: gunakan satu gambar per tab */}
             </div>
           </div>
 
